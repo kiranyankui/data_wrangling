@@ -14,6 +14,11 @@ library(tidyverse)
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
+``` r
+library(readxl)
+library(haven)
+```
+
 ## Read in some data
 
 We need to use relative paths. The benefit is that it is easier and
@@ -142,14 +147,82 @@ We can use View(litters_df) in the console. ?read_csv
 ## Options to read_csv
 
 ``` r
-litters_df = read_csv("./data/FAS_litters.csv")
+litters_df = read_csv("./data/FAS_litters.csv", skip = 10, col_names = FALSE, na = c("", "NA",".",999))
 ```
 
-    ## Rows: 49 Columns: 8
+    ## Rows: 40 Columns: 8
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ","
-    ## chr (2): Group, Litter Number
-    ## dbl (6): GD0 weight, GD18 weight, GD of Birth, Pups born alive, Pups dead @ ...
+    ## chr (2): X1, X2
+    ## dbl (6): X3, X4, X5, X6, X7, X8
     ## 
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+## Options to read_csv
+
+check out ‘? read_csv()’ to find out more information
+
+## Other file formats
+
+Read in an excel file.
+
+We are loading readxl.
+
+``` r
+mlb_df = read_excel("./data/mlb11.xlsx")
+mlb_df
+```
+
+    ## # A tibble: 30 × 12
+    ##    team         runs at_bats  hits homer…¹ bat_avg strik…² stole…³  wins new_o…⁴
+    ##    <chr>       <dbl>   <dbl> <dbl>   <dbl>   <dbl>   <dbl>   <dbl> <dbl>   <dbl>
+    ##  1 Texas Rang…   855    5659  1599     210   0.283     930     143    96   0.34 
+    ##  2 Boston Red…   875    5710  1600     203   0.28     1108     102    90   0.349
+    ##  3 Detroit Ti…   787    5563  1540     169   0.277    1143      49    95   0.34 
+    ##  4 Kansas Cit…   730    5672  1560     129   0.275    1006     153    71   0.329
+    ##  5 St. Louis …   762    5532  1513     162   0.273     978      57    90   0.341
+    ##  6 New York M…   718    5600  1477     108   0.264    1085     130    77   0.335
+    ##  7 New York Y…   867    5518  1452     222   0.263    1138     147    97   0.343
+    ##  8 Milwaukee …   721    5447  1422     185   0.261    1083      94    96   0.325
+    ##  9 Colorado R…   735    5544  1429     163   0.258    1201     118    73   0.329
+    ## 10 Houston As…   615    5598  1442      95   0.258    1164     118    56   0.311
+    ## # … with 20 more rows, 2 more variables: new_slug <dbl>, new_obs <dbl>, and
+    ## #   abbreviated variable names ¹​homeruns, ²​strikeouts, ³​stolen_bases,
+    ## #   ⁴​new_onbase
+
+We can use “?read_excel”. We can specify sheet, and range to import. And
+which cell values, using range.
+
+We are going to use the range function
+
+``` r
+mlb_df_2 = read_excel("./data/mlb11.xlsx", range= "A1:F7")
+```
+
+Read in SAS file
+
+``` r
+pulse_df = read_sas("./data/public_pulse_data.sas7bdat")
+pulse_df
+```
+
+    ## # A tibble: 1,087 × 7
+    ##       ID   age Sex    BDIScore_BL BDIScore_01m BDIScore_06m BDIScore_12m
+    ##    <dbl> <dbl> <chr>        <dbl>        <dbl>        <dbl>        <dbl>
+    ##  1 10003  48.0 male             7            1            2            0
+    ##  2 10015  72.5 male             6           NA           NA           NA
+    ##  3 10022  58.5 male            14            3            8           NA
+    ##  4 10026  72.7 male            20            6           18           16
+    ##  5 10035  60.4 male             4            0            1            2
+    ##  6 10050  84.7 male             2           10           12            8
+    ##  7 10078  31.3 male             4            0           NA           NA
+    ##  8 10088  56.9 male             5           NA            0            2
+    ##  9 10091  76.0 male             0            3            4            0
+    ## 10 10092  74.2 female          10            2           11            6
+    ## # … with 1,077 more rows
+
+## Comparison with Base R
+
+What about read.csv is built into R, but NEVER use this! Differences are
+relatively small but bad stuff might happen!

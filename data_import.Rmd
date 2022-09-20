@@ -60,7 +60,7 @@ We can use "?read_excel". We can specify sheet, and range to import. And which c
 
 We are going to use the range function
 ```{r}
-mlb_df_2 = read_excel("./data/mlb11.xlsx", range: "A1:F7")
+mlb_df_2 = read_excel("./data/mlb11.xlsx", range= "A1:F7")
 ```
 
 Read in SAS file 
@@ -68,6 +68,16 @@ Read in SAS file
 pulse_df = read_sas("./data/public_pulse_data.sas7bdat")
 pulse_df
 ```
+
+## Comparison with Base R
+
+What about read.csv is built into R, but NEVER use this! Differences are relatively small but bad stuff might happen!
+
+
+
+
+
+
 
 
 
