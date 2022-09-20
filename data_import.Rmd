@@ -33,35 +33,24 @@ __Skimmer is super important to explore NA in data, also mean/sd etc__
 skimr::skim(litters_df)
 ```
 
-We can use View(litters_df) in the console. 
+We can use View(litters_df) in the console. ?read_csv
 
 <chr> --> this is a character variable 
 <double> --> this is a number
 
-
-
-
-
-
-
-
-
-
-
-
-I'm an R Markdown document! 
-
-# Section 1
-
-Here's a **code chunk** that samples from 
-a _normal distribution_:
-
+## Options to read_csv
 ```{r}
-samp = rnorm(100)
-length(samp)
+litters_df = read_csv("./data/FAS_litters.csv")
 ```
 
-# Section 2
 
-I can take the mean of the sample, too!
-The mean is `r mean(samp)`.
+
+
+
+
+
+
+
+
+
+
