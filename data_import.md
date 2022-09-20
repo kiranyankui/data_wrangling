@@ -135,23 +135,21 @@ Data summary
 | pups_dead_birth |         0 |          1.00 |  0.33 | 0.75 |  0.0 |  0.00 |  0.00 |  0.00 |  4.0 | ▇▂▁▁▁ |
 | pups_survive    |         0 |          1.00 |  6.41 | 2.05 |  1.0 |  5.00 |  7.00 |  8.00 |  9.0 | ▁▃▂▇▇ |
 
-We can use View(litters_df) in the console.
+We can use View(litters_df) in the console. ?read_csv
 
 <chr> –\> this is a character variable <double> –\> this is a number
 
-I’m an R Markdown document!
-
-# Section 1
-
-Here’s a **code chunk** that samples from a *normal distribution*:
+## Options to read_csv
 
 ``` r
-samp = rnorm(100)
-length(samp)
+litters_df = read_csv("./data/FAS_litters.csv")
 ```
 
-    ## [1] 100
-
-# Section 2
-
-I can take the mean of the sample, too! The mean is 0.1569128.
+    ## Rows: 49 Columns: 8
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (2): Group, Litter Number
+    ## dbl (6): GD0 weight, GD18 weight, GD of Birth, Pups born alive, Pups dead @ ...
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
