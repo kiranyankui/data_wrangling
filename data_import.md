@@ -226,3 +226,11 @@ pulse_df
 
 What about read.csv is built into R, but NEVER use this! Differences are
 relatively small but bad stuff might happen!
+
+## Exporting data
+
+Export the mlb sub-table
+
+``` r
+write_csv(mlb_df, "./data/mlb_subtable.csv")
+```
