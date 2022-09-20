@@ -1,7 +1,17 @@
 ---
-title: "Simple document"
-output: html_document
+title: "Data import"
+output: github_document
 ---
+
+```{r setup}
+library(tidyverse)
+```
+## Read in some data
+
+
+
+
+
 
 I'm an R Markdown document! 
 
