@@ -7,6 +7,42 @@ output: github_document
 library(tidyverse)
 ```
 ## Read in some data
+We need to use relative paths. The benefit is that it is easier and other people can use it. Versus absolute dataset. 
+
+Read in litters dataset. --> Fetal alcohol syndrome in pregnant mice 
+
+```{r}
+litters_df = read_csv("./data/FAS_litters.csv")
+litters_df = janitor::clean_names(litters_df)
+```
+We could all of the janitor package. But we only want the clean_names function. So we can use "package_name::". 
+
+## Take a look at the data
+Printing in the console
+```{r}
+litters_df
+```
+
+```{r}
+head(litters_df)
+tail(litters_df)
+```
+
+__Skimmer is super important to explore NA in data, also mean/sd etc__
+```{r}
+skimr::skim(litters_df)
+```
+
+We can use View(litters_df) in the console. 
+
+<chr> --> this is a character variable 
+<double> --> this is a number
+
+
+
+
+
+
 
 
 
