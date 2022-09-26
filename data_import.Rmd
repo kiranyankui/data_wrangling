@@ -13,7 +13,7 @@ We need to use relative paths. The benefit is that it is easier and other people
 
 Read in litters dataset. --> Fetal alcohol syndrome in pregnant mice 
 
-```{r}
+```{r Read csv}
 litters_df = read_csv("./data/FAS_litters.csv")
 litters_df = janitor::clean_names(litters_df)
 ```
@@ -21,17 +21,17 @@ We could all of the janitor package. But we only want the clean_names function. 
 
 ## Take a look at the data
 Printing in the console
-```{r}
+```{r look at data}
 litters_df
 ```
 
-```{r}
+```{r Exploring data head/tail}
 head(litters_df)
 tail(litters_df)
 ```
 
 __Skimmer is super important to explore NA in data, also mean/sd etc__
-```{r}
+```{r skimr}
 skimr::skim(litters_df)
 ```
 
@@ -41,30 +41,30 @@ We can use View(litters_df) in the console. ?read_csv
 <double> --> this is a number
 
 ## Options to read_csv
-```{r}
+```{r random additions to read_csv}
 litters_df = read_csv("./data/FAS_litters.csv", skip = 10, col_names = FALSE, na = c("", "NA",".",999))
 ```
 
 ## Options to read_csv
-check out '? read_csv()' to find out more information
+check out '?  read_csv()' to find out more information
 
 ## Other file formats 
 Read in an excel file. 
 
 We are loading readxl. 
-```{r}
+```{r Read Excel file}
 mlb_df = read_excel("./data/mlb11.xlsx")
 mlb_df
 ```
 We can use "?read_excel". We can specify sheet, and range to import. And which cell values, using range. 
 
 We are going to use the range function
-```{r}
+```{r range function in read_excel}
 mlb_df_2 = read_excel("./data/mlb11.xlsx", range= "A1:F7")
 ```
 
 Read in SAS file 
-```{r}
+```{r Read SAS file}
 pulse_df = read_sas("./data/public_pulse_data.sas7bdat")
 pulse_df
 ```
@@ -76,9 +76,33 @@ What about read.csv is built into R, but NEVER use this! Differences are relativ
 ## Exporting data
 
 Export the mlb sub-table 
-```{r}
+```{r read_csv again}
 write_csv(mlb_df, "./data/mlb_subtable.csv")
 ```
+
+#self-assessments 
+## we want to load the csv file using relative and direct manners 
+```{r assessment}
+FAS_pups_df = read_csv("./data/FAS_pups.csv")
+
+FAS_pups_df = read_csv("~/Desktop/data_wrangling/data/FAS_pups.csv")
+```
+## Now we want to make sure column names and format are reasonable 
+
+```{r column names and format}
+FAS_pups_df = read_csv("./data/FAS_pups.csv", col_types="ciiiii") 
+FAS_pups_df
+skimr::skim(FAS_pups_df)
+
+```
+
+## Importing data using read.csv from R which is not from readr package from tidyr
+
+```{r}
+FAS_pups_df = read.csv("./data/FAS_pups.csv")
+FAS_pups_df
+```
+We can see that all the data is displayed instead of just the first couple of rows! Which is clumsy. 
 
 
 

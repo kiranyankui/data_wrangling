@@ -74,12 +74,20 @@ filter(litters_data, group %>% c("Con7","Mod8")) # group in Con6 and Mod8
 #MUTATE: modify some variable + create new variable
 mutate(litters_data, wt_gain = gd18_weight - gd0_weight,group = str_to_lower(group)) #new variable called "wt_gain" + make the group variable to LOWERCASE, new variables at the end!!
 
-head(arrange(litters_data, group, pups_born_alive), 10)
+#ARRANGE: just arranging stuff in columns I guess
+head(arrange(litters_data, group, pups_born_alive), 10) #INCREASING order of the pups born alive
 
-litters_data_raw = read_csv("./data/FAS_litters.csv",
-                            col_types = "ccddiiii")
+#DID NOT USE %>% 
+litters_data_raw = read_csv("./data/FAS_litters.csv",col_types = "ccddiiii")
+
 litters_data_clean_names = janitor::clean_names(litters_data_raw)
+
 litters_data_selected_cols = select(litters_data_clean_names, -pups_survive)
+
+litters_mutated = mutate(litters_data_selected_cols, t_gain = gd18_weight - gd0_weight)
+
+litters_without_missing = drop_na(litters_mutated, gd0_weight)
+
 litters_data_with_vars = 
   mutate(
     litters_data_selected_cols, 
@@ -89,7 +97,24 @@ litters_data_with_vars_without_missing =
   drop_na(litters_data_with_vars, wt_gain)
 litters_data_with_vars_without_missing
 
-litters_data_clean = 
+#USE %>%!!!!!!
+litters_df = 
+  read_csv("./data/FAS_litters.csv",col_types = "ccddiiii") %>% 
+janitor::clean_names() %>% 
+select (-pups_survive) %>% 
+mutate(wt_gain = gd18_weight - gd0_weight,
+group = str_to_lower(group)) %>% 
+drop_na(gd0_weight)
+
+  litters_data = 
+  read_csv("./data/FAS_litters.csv", col_types = "ccddiiii") %>%
+  janitor::clean_names() %>%
+  select(-pups_survive) %>%
+  mutate(
+    wt_gain = gd18_weight - gd0_weight,
+    group = str_to_lower(group)) %>% 
+  drop_na(wt_gain)
+  
   drop_na(
     mutate(
       select(
@@ -129,5 +154,6 @@ litters_data =
 litters_data %>%
   lm(wt_gain ~ pups_born_alive, data = .) %>%
   broom::tidy()
+
 
 
