@@ -76,7 +76,7 @@ What about read.csv is built into R, but NEVER use this! Differences are relativ
 ## Exporting data
 
 Export the mlb sub-table 
-```{r read_csv again}
+```{r create csv file }
 write_csv(mlb_df, "./data/mlb_subtable.csv")
 ```
 
