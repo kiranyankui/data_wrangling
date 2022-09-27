@@ -134,6 +134,20 @@ print(pulse_df, n = 12)
     ## 12 12m   10022  58.5 male     NA
     ## # … with 4,336 more rows
 
+``` r
+pulse_df
+```
+
+    ## # A tibble: 4,348 × 5
+    ##   visit    id   age sex     bdi
+    ##   <fct> <dbl> <dbl> <chr> <dbl>
+    ## 1 00m   10003  48.0 male      7
+    ## 2 01m   10003  48.0 male      1
+    ## 3 06m   10003  48.0 male      2
+    ## 4 12m   10003  48.0 male      0
+    ## 5 00m   10015  72.5 male      6
+    ## # … with 4,343 more rows
+
 ## Pivot_wider
 
 Pivot_wider is the inverse of Pivot_longer
@@ -178,14 +192,45 @@ fellowship_ring =
   readxl::read_excel("./data/LotR_Words.xlsx", range = "B3:D6") %>%
   mutate(movie = "fellowship_ring")
 
+fellowship_ring
+```
+
+    ## # A tibble: 3 × 4
+    ##   Race   Female  Male movie          
+    ##   <chr>   <dbl> <dbl> <chr>          
+    ## 1 Elf      1229   971 fellowship_ring
+    ## 2 Hobbit     14  3644 fellowship_ring
+    ## 3 Man         0  1995 fellowship_ring
+
+``` r
 two_towers = 
   readxl::read_excel("./data/LotR_Words.xlsx", range = "F3:H6") %>%
   mutate(movie = "two_towers")
 
+two_towers
+```
+
+    ## # A tibble: 3 × 4
+    ##   Race   Female  Male movie     
+    ##   <chr>   <dbl> <dbl> <chr>     
+    ## 1 Elf       331   513 two_towers
+    ## 2 Hobbit      0  2463 two_towers
+    ## 3 Man       401  3589 two_towers
+
+``` r
 return_king = 
   readxl::read_excel("./data/LotR_Words.xlsx", range = "J3:L6") %>%
   mutate(movie = "return_king")
+
+return_king
 ```
+
+    ## # A tibble: 3 × 4
+    ##   Race   Female  Male movie      
+    ##   <chr>   <dbl> <dbl> <chr>      
+    ## 1 Elf       183   510 return_king
+    ## 2 Hobbit      2  2673 return_king
+    ## 3 Man       268  2459 return_king
 
 ``` r
 lotr_tidy = 
@@ -246,7 +291,7 @@ litter_data =
   read_csv("./data/FAS_litters.csv") %>%
   janitor::clean_names() %>%
   separate(group, into = c("dose", "day_of_tx"), sep = 3) %>%
-  relocate(litter_number) %>%
+  relocate(litter_number) %>% 
   mutate(
     wt_gain = gd18_weight - gd0_weight,
     dose = str_to_lower(dose))
@@ -263,5 +308,39 @@ litter_data =
 
 ``` r
 fas_data = 
-  left_join(pup_data, litter_data, by = "litter_number")
+  left_join(pup_data, litter_data, by = "litter_number") %>% 
+  arrange(litter_number) %>% 
+  relocate(litter_number,dose, day_of_tx)
+
+fas_data
 ```
+
+    ## # A tibble: 313 × 15
+    ##   litter_n…¹ dose  day_o…² sex   pd_ears pd_eyes pd_pi…³ pd_walk gd0_w…⁴ gd18_…⁵
+    ##   <chr>      <chr> <chr>   <fct>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ## 1 #1/2/95/2  con   7       male        5      13       7       9      27      42
+    ## 2 #1/2/95/2  con   7       male        5      13       8      10      27      42
+    ## 3 #1/2/95/2  con   7       fema…       4      13       7       9      27      42
+    ## 4 #1/2/95/2  con   7       fema…       4      13       7      10      27      42
+    ## 5 #1/2/95/2  con   7       fema…       5      13       8      10      27      42
+    ## # … with 308 more rows, 5 more variables: gd_of_birth <dbl>,
+    ## #   pups_born_alive <dbl>, pups_dead_birth <dbl>, pups_survive <dbl>,
+    ## #   wt_gain <dbl>, and abbreviated variable names ¹​litter_number, ²​day_of_tx,
+    ## #   ³​pd_pivot, ⁴​gd0_weight, ⁵​gd18_weight
+
+``` r
+fas_data
+```
+
+    ## # A tibble: 313 × 15
+    ##   litter_n…¹ dose  day_o…² sex   pd_ears pd_eyes pd_pi…³ pd_walk gd0_w…⁴ gd18_…⁵
+    ##   <chr>      <chr> <chr>   <fct>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+    ## 1 #1/2/95/2  con   7       male        5      13       7       9      27      42
+    ## 2 #1/2/95/2  con   7       male        5      13       8      10      27      42
+    ## 3 #1/2/95/2  con   7       fema…       4      13       7       9      27      42
+    ## 4 #1/2/95/2  con   7       fema…       4      13       7      10      27      42
+    ## 5 #1/2/95/2  con   7       fema…       5      13       8      10      27      42
+    ## # … with 308 more rows, 5 more variables: gd_of_birth <dbl>,
+    ## #   pups_born_alive <dbl>, pups_dead_birth <dbl>, pups_survive <dbl>,
+    ## #   wt_gain <dbl>, and abbreviated variable names ¹​litter_number, ²​day_of_tx,
+    ## #   ³​pd_pivot, ⁴​gd0_weight, ⁵​gd18_weight
