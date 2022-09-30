@@ -1,0 +1,25 @@
+---
+title: "DS HW2"
+output: github_document
+---
+
+# Homework 2 
+
+## Load Libraries 
+
+```{r setup}
+library(tidyverse)
+library(readxl)
+library(haven)
+```
+
+## Question 1 
+
+```{r Read/Clean data}
+NYC_transit = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+
+NYC_transit = janitor::clean_names(NYC_transit)
+
+NYC_transit
+```
+
