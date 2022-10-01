@@ -28,6 +28,7 @@ skimr::skim(NYC_transit)
 ```
 
 Now, we want to retain the following variables:
+
 * line
 * station name
 * station latitude / longitude
@@ -39,6 +40,62 @@ Now, we want to retain the following variables:
 
 ```{r retain variables}
 select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada, ada_notes)
+
+NYC_transit
 ```
+
+
+Converting the entry variable into a logical vector. 
+```{r converting to logical vector}
+
+recode(NYC_transit$entry, "YES"=TRUE,"NO"=FALSE, .default = NA)
+
+NYC_transit
+```
+It took a while but I figured it out. 
+
+
+## Description about the NYC_transit dataset
+
+1. The dataset contains 32 columns (variables) and rows  (observations). 
+
+2. The variables are as follows: division, line, station_name, routes, entrance type, entry, exit only, vending, staffing, staff hours, ADA notes, north south street, east west street, corner, station location, entrance location, ada, free crossover, station lattitude and longitude, and entrance lattitude and longitude. 
+
+3. I read and clean the data; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable
+
+4. The data are tidy. 
+
+Answer the following questions using these data:
+
+* How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox); the distinct function may be useful here.
+
+```{r distinct stations}
+nrow(distinct(NYC_transit, station_name))
+```
+Ans: There are 356 distinct stations. 
+
+* How many stations are ADA compliant?
+
+```{r}
+NYC_transit %>% 
+  select(station_name, ada) %>% 
+  filter(ada == TRUE) %>%
+  distinct(station_name)
+```
+
+Ans: There are 73 stations who are ADA-compliant. 
+
+* What proportion of station entrances / exits without vending allow entrance?
+
+
+
+
+
+
+
+
+
+
+
 
 
