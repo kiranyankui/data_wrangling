@@ -384,4 +384,119 @@ It took a while but I figured it out.
 
 ## Description about the NYC_transit dataset
 
-The dataset contains 32 variables and 1868 observations.
+1.  The dataset contains 32 columns (variables) and rows (observations).
+
+2.  The variables are as follows: division, line, station_name, routes,
+    entrance type, entry, exit only, vending, staffing, staff hours, ADA
+    notes, north south street, east west street, corner, station
+    location, entrance location, ada, free crossover, station lattitude
+    and longitude, and entrance lattitude and longitude.
+
+3.  I read and clean the data; retain line, station, name, station
+    latitude / longitude, routes served, entry, vending, entrance type,
+    and ADA compliance. Convert the entry variable from character (YES
+    vs NO) to a logical variable
+
+4.  The data are tidy.
+
+Answer the following questions using these data:
+
+-   How many distinct stations are there? Note that stations are
+    identified both by name and by line (e.g. 125th St 8th Avenue; 125st
+    Broadway; 125st Lenox); the distinct function may be useful here.
+
+``` r
+nrow(distinct(NYC_transit, station_name))
+```
+
+    ## [1] 356
+
+Ans: There are 356 distinct stations.
+
+-   How many stations are ADA compliant?
+
+``` r
+NYC_transit %>% 
+  select(station_name, ada) %>% 
+  filter(ada == TRUE) %>%
+  distinct(station_name)
+```
+
+    ## # A tibble: 73 × 1
+    ##    station_name                  
+    ##    <chr>                         
+    ##  1 Atlantic Av-Barclays Ctr      
+    ##  2 DeKalb Av                     
+    ##  3 Pacific St                    
+    ##  4 Grand Central                 
+    ##  5 34th St                       
+    ##  6 47-50th Sts Rockefeller Center
+    ##  7 Church Av                     
+    ##  8 21st St                       
+    ##  9 Lexington Av                  
+    ## 10 Roosevelt Island              
+    ## # … with 63 more rows
+
+Ans: There are 73 distinct stations who are ADA-compliant.
+
+-   What proportion of station entrances / exits without vending allow
+    entrance?
+
+``` r
+NYC_transit %>% 
+  select(vending, entry) %>% 
+  filter(entry == "YES", vending == "NO")
+```
+
+    ## # A tibble: 69 × 2
+    ##    vending entry
+    ##    <chr>   <chr>
+    ##  1 NO      YES  
+    ##  2 NO      YES  
+    ##  3 NO      YES  
+    ##  4 NO      YES  
+    ##  5 NO      YES  
+    ##  6 NO      YES  
+    ##  7 NO      YES  
+    ##  8 NO      YES  
+    ##  9 NO      YES  
+    ## 10 NO      YES  
+    ## # … with 59 more rows
+
+``` r
+NYC_transit %>% 
+  select(vending, entry) %>% 
+  filter(vending == "NO")
+```
+
+    ## # A tibble: 183 × 2
+    ##    vending entry
+    ##    <chr>   <chr>
+    ##  1 NO      NO   
+    ##  2 NO      NO   
+    ##  3 NO      YES  
+    ##  4 NO      NO   
+    ##  5 NO      NO   
+    ##  6 NO      NO   
+    ##  7 NO      YES  
+    ##  8 NO      YES  
+    ##  9 NO      YES  
+    ## 10 NO      YES  
+    ## # … with 173 more rows
+
+69 station entrances do not have vending and allow entrance. 183 station
+entrances do not have vending.
+
+Ans: Proportion of station entrances / exits without vending allow
+entrance is (69/183)\*100 = 37.70%.
+
+I am reformating data so that route number and route name are distinct
+variables.
+
+-   How many distinct stations serve the A train? Of the stations that
+    serve the A train, how many are ADA compliant?
+
+NYC_transit_tidy_data = pivot_longer( NYC_transit, route1:route11,
+names_to = “route_name”, values_to = “rout_number”)
+
+## Problem 2
