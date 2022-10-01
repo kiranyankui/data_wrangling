@@ -508,8 +508,7 @@ file.
 
 ``` r
 Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>% 
-  janitor::clean_names() %>% 
-  na.omit(Trash_df)
+  janitor::clean_names() 
 ```
 
     ## New names:
@@ -517,22 +516,18 @@ Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>%
     ## • `` -> `...16`
     ## • `` -> `...17`
 
-**Is this right?**
+**what does it mean by specify the sheet in the Excel file and to omit
+non-data entries (rows with notes / figures; columns containing notes)
+using arguments in read_excel?**
 
 ``` r
 skimr::skim(Trash_df)
 ```
 
-    ## Warning in min.default(structure(numeric(0), tzone = "UTC", class =
-    ## c("POSIXct", : no non-missing arguments to min; returning Inf
-
-    ## Warning in max.default(structure(numeric(0), tzone = "UTC", class =
-    ## c("POSIXct", : no non-missing arguments to max; returning -Inf
-
 |                                                  |          |
 |:-------------------------------------------------|:---------|
 | Name                                             | Trash_df |
-| Number of rows                                   | 0        |
+| Number of rows                                   | 533      |
 | Number of columns                                | 17       |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |          |
 | Column type frequency:                           |          |
@@ -548,36 +543,109 @@ Data summary
 **Variable type: character**
 
 | skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
-|:--------------|----------:|--------------:|:----|:----|------:|---------:|-----------:|
-| dumpster      |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
-| month         |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
-| x15           |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| dumpster      |        79 |          0.85 |   1 |  11 |     0 |      454 |          0 |
+| month         |         1 |          1.00 |   3 |  15 |     0 |       29 |          0 |
+| x15           |       515 |          0.03 |  35 |  35 |     0 |        1 |          0 |
 
 **Variable type: logical**
 
 | skim_variable | n_missing | complete_rate | mean | count |
 |:--------------|----------:|--------------:|-----:|:------|
-| x16           |         0 |           NaN |  NaN | :     |
-| x17           |         0 |           NaN |  NaN | :     |
+| x16           |       533 |             0 |  NaN | :     |
+| x17           |       533 |             0 |  NaN | :     |
 
 **Variable type: numeric**
 
-| skim_variable      | n_missing | complete_rate | mean |  sd |  p0 | p25 | p50 | p75 | p100 | hist |
-|:-------------------|----------:|--------------:|-----:|----:|----:|----:|----:|----:|-----:|:-----|
-| year               |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| weight_tons        |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| volume_cubic_yards |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| plastic_bottles    |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| polystyrene        |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| cigarette_butts    |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| glass_bottles      |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| grocery_bags       |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| chip_bags          |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| sports_balls       |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
-| homes_powered      |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| skim_variable      | n_missing | complete_rate |     mean |        sd |      p0 |     p25 |      p50 |      p75 |       p100 | hist  |
+|:-------------------|----------:|--------------:|---------:|----------:|--------:|--------:|---------:|---------:|-----------:|:------|
+| year               |        80 |          0.85 |  2017.26 |      1.95 | 2014.00 | 2015.00 |  2018.00 |  2019.00 |     2021.0 | ▆▃▇▃▃ |
+| weight_tons        |         0 |          1.00 |     8.16 |     63.02 |    0.78 |    2.79 |     3.34 |     4.04 |     1449.7 | ▇▁▁▁▁ |
+| volume_cubic_yards |         0 |          1.00 |    39.30 |    303.36 |    7.00 |   15.00 |    15.00 |    18.00 |     6982.0 | ▇▁▁▁▁ |
+| plastic_bottles    |         0 |          1.00 |  4841.74 |  37361.65 |  210.00 | 1120.00 |  2100.00 |  3000.00 |   860215.0 | ▇▁▁▁▁ |
+| polystyrene        |         0 |          1.00 |  4897.81 |  37807.68 |  210.00 |  990.00 |  2100.00 |  3250.00 |   870177.0 | ▇▁▁▁▁ |
+| cigarette_butts    |         0 |          1.00 | 62523.38 | 488496.27 |  980.00 | 5500.00 | 15000.00 | 38000.00 | 11108320.0 | ▇▁▁▁▁ |
+| glass_bottles      |         0 |          1.00 |    57.25 |    442.98 |    0.00 |   11.00 |    21.00 |    42.00 |    10171.0 | ▇▁▁▁▁ |
+| grocery_bags       |         0 |          1.00 |  2813.34 |  21757.93 |   50.00 |  480.00 |   950.00 |  2150.00 |   499448.0 | ▇▁▁▁▁ |
+| chip_bags          |         0 |          1.00 |  3971.29 |  30648.58 |  180.00 |  880.00 |  1570.00 |  2750.00 |   704792.0 | ▇▁▁▁▁ |
+| sports_balls       |         0 |          1.00 |    29.94 |    231.63 |    0.00 |    6.00 |    11.00 |    22.00 |     5315.4 | ▇▁▁▁▁ |
+| homes_powered      |         0 |          1.00 |   115.55 |    893.88 |    0.00 |   40.50 |    52.83 |    64.00 |    20530.0 | ▇▁▁▁▁ |
 
 **Variable type: POSIXct**
 
-| skim_variable | n_missing | complete_rate | min | max  | median | n_unique |
-|:--------------|----------:|--------------:|:----|:-----|:-------|---------:|
-| date          |         0 |           NaN | Inf | -Inf | NA     |        0 |
+| skim_variable | n_missing | complete_rate | min        | max        | median     | n_unique |
+|:--------------|----------:|--------------:|:-----------|:-----------|:-----------|---------:|
+| date          |        80 |          0.85 | 1900-01-20 | 2021-01-04 | 2018-02-05 |      275 |
+
+I ensured the use of reasonable variable names.
+
+``` r
+Trash_df %>% filter(!is.na(dumpster))
+```
+
+    ## # A tibble: 454 × 17
+    ##    dumpster month  year date                weight_tons volume…¹ plast…² polys…³
+    ##    <chr>    <chr> <dbl> <dttm>                    <dbl>    <dbl>   <dbl>   <dbl>
+    ##  1 1        May    2014 2014-05-16 00:00:00        4.31       18    1450    1820
+    ##  2 2        May    2014 2014-05-16 00:00:00        2.74       13    1120    1030
+    ##  3 3        May    2014 2014-05-16 00:00:00        3.45       15    2450    3100
+    ##  4 4        May    2014 2014-05-17 00:00:00        3.1        15    2380    2730
+    ##  5 5        May    2014 2014-05-17 00:00:00        4.06       18     980     870
+    ##  6 6        May    2014 2014-05-20 00:00:00        2.71       13    1430    2140
+    ##  7 7        May    2014 2014-05-21 00:00:00        1.91        8     910    1090
+    ##  8 8        May    2014 2014-05-28 00:00:00        3.7        16    3580    4310
+    ##  9 9        June   2014 2014-06-05 00:00:00        2.52       14    2400    2790
+    ## 10 10       June   2014 2014-06-11 00:00:00        3.76       18    1340    1730
+    ## # … with 444 more rows, 9 more variables: cigarette_butts <dbl>,
+    ## #   glass_bottles <dbl>, grocery_bags <dbl>, chip_bags <dbl>,
+    ## #   sports_balls <dbl>, homes_powered <dbl>, x15 <chr>, x16 <lgl>, x17 <lgl>,
+    ## #   and abbreviated variable names ¹​volume_cubic_yards, ²​plastic_bottles,
+    ## #   ³​polystyrene
+
+I have ommited rows that do not include dumpster-specific data.
+
+``` r
+Trash_df$sports_balls = as.integer(as.numeric(Trash_df$sports_balls))
+
+Trash_df$sports_balls
+```
+
+    ##   [1]    7    5    6    6    7    5    3    6   46    5    7    6    7    6    6
+    ##  [16]    6    6    5   55    6    6    7    6    6    5    5   42    6    6    8
+    ##  [31]    6    4   32    7    3    6   16    6    5    7    5    6   30    6    7
+    ##  [46]    6    6   25    6    6    6   18    7    6    5   18    3    3    8   16
+    ##  [61]   14   38   13   16    8    5    8   11    7    6   74    8   22   28   19
+    ##  [76]   32   24  133   26   36   24    9   16   22   17   13   14   21   15   13
+    ##  [91]   18   16   22   32   18   21   34   19   14  420   22   16   25   27   18
+    ## [106]   20  128   17   56   32   22    6    3  136   17   13   12    7    8   57
+    ## [121]   16   23   33   72   27   27   15   21    9   13   22   17   27    8  132
+    ## [136]   17   17   14   21   26    6    4   16   87   24   23   18   46   38  149
+    ## [151]   24   36   42   23   34  159   38   26   32   96   43   38   24   35   26
+    ## [166]   29  195   31   28   34   26   38   25   16   24  222   15   31   22   28
+    ## [181]   32  128   15   28   33   76   11   37   48   22   11   34   67    6   24
+    ## [196]   20   15   65   22   22   19   12   31   14   18   10    6   48    8    8
+    ## [211]    5    3    5    7    2    7    3    4    5    8   10    5    7    5    8
+    ## [226]   10  110   11   14   12    8    5    9    5   14   78   12    8    7   27
+    ## [241]   18   11   22   13   21   85   14    9    6   13   11    6    8    5   72
+    ## [256]    6   12   18    8    7   15   13   11   24   12    8   20    6    4    6
+    ## [271]   12   14    5    4    8    3   62    7   10   17   12    1    4    2    4
+    ## [286]    3    4    3    4    2    5    1    3    2    4    2    3   59    4    5
+    ## [301]    3    2    3    0    2    3    2    1    2   27    5    4    3    2    4
+    ## [316]    2    8    3    2    2   35    3    1    5    3    1    2    7    4    5
+    ## [331]    1    7    2    3   44    6    1    9    0    2   18   14   11    6    0
+    ## [346]    4    9   16   14   74    8    8   11   27    6    4    0    4    9   14
+    ## [361]    2    0    6   45    8    8    0    4   20   13   17   30    2   11   13
+    ## [376]   14    9    0    6    6    3   38   11   14    4    8    1    4   42    8
+    ## [391]   14    9    4    4   14   22    6    9   10    8  108   17    8   16   41
+    ## [406]   11    8   20    7    8   18   14   22   12    4   14   32  170   10    4
+    ## [421]   14    0    6   13   21   68    4   12   16   28   12   20    4    2   98
+    ## [436]   12    2   11    4    1    0    3   33    9   12   21   16   12    8    6
+    ## [451]   14    2    6   14   10   88    9    9   16    7   11   34    6   14    8
+    ## [466]    4    4    2   14   19   71   16   22   12   50   24   12   10   10    1
+    ## [481]   14    0    4    0    2    3    6   86   11   15   12    8   19   12   10
+    ## [496]   87   24   16    9   10   16   75   12   20   18   50   21   24   14    8
+    ## [511]   67   11    8    9   28   14   21   18   12   16   21   10   14   20    8
+    ## [526]   28    0   14   15  211   12   12 5315
+
+I have rounded the number of sports balls to the nearest integer and
+converted the result to an integer variable.

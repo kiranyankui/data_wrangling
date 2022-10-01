@@ -124,16 +124,32 @@ We want to read and clean the Mr Trash Wheek dataset from the excel file.
 
 ```{r Read/Clean Trash data}
 Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>% 
-  janitor::clean_names() %>% 
-  na.omit(Trash_df)
+  janitor::clean_names() 
   
 ```
-__Is this right?__
-
+__what does it mean by specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel?__
 
 ```{r}
 skimr::skim(Trash_df)
 ```
+
+I ensured the use of reasonable variable names. 
+
+
+```{r}
+Trash_df %>% filter(!is.na(dumpster))
+```
+
+I have ommited rows that do not include dumpster-specific data. 
+
+
+```{r}
+Trash_df$sports_balls = as.integer(as.numeric(Trash_df$sports_balls))
+
+Trash_df$sports_balls
+```
+
+I have rounded the number of sports balls to the nearest integer and converted the result to an integer variable. 
 
 
 
