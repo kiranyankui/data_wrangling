@@ -499,4 +499,85 @@ variables.
 NYC_transit_tidy_data = pivot_longer( NYC_transit, route1:route11,
 names_to = “route_name”, values_to = “rout_number”)
 
+**Is the above code right?**
+
 ## Problem 2
+
+We want to read and clean the Mr Trash Wheek dataset from the excel
+file.
+
+``` r
+Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>% 
+  janitor::clean_names() %>% 
+  na.omit(Trash_df)
+```
+
+    ## New names:
+    ## • `` -> `...15`
+    ## • `` -> `...16`
+    ## • `` -> `...17`
+
+**Is this right?**
+
+``` r
+skimr::skim(Trash_df)
+```
+
+    ## Warning in min.default(structure(numeric(0), tzone = "UTC", class =
+    ## c("POSIXct", : no non-missing arguments to min; returning Inf
+
+    ## Warning in max.default(structure(numeric(0), tzone = "UTC", class =
+    ## c("POSIXct", : no non-missing arguments to max; returning -Inf
+
+|                                                  |          |
+|:-------------------------------------------------|:---------|
+| Name                                             | Trash_df |
+| Number of rows                                   | 0        |
+| Number of columns                                | 17       |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |          |
+| Column type frequency:                           |          |
+| character                                        | 3        |
+| logical                                          | 2        |
+| numeric                                          | 11       |
+| POSIXct                                          | 1        |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |          |
+| Group variables                                  | None     |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|:----|:----|------:|---------:|-----------:|
+| dumpster      |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
+| month         |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
+| x15           |         0 |           NaN | NA  | NA  |     0 |        0 |          0 |
+
+**Variable type: logical**
+
+| skim_variable | n_missing | complete_rate | mean | count |
+|:--------------|----------:|--------------:|-----:|:------|
+| x16           |         0 |           NaN |  NaN | :     |
+| x17           |         0 |           NaN |  NaN | :     |
+
+**Variable type: numeric**
+
+| skim_variable      | n_missing | complete_rate | mean |  sd |  p0 | p25 | p50 | p75 | p100 | hist |
+|:-------------------|----------:|--------------:|-----:|----:|----:|----:|----:|----:|-----:|:-----|
+| year               |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| weight_tons        |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| volume_cubic_yards |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| plastic_bottles    |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| polystyrene        |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| cigarette_butts    |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| glass_bottles      |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| grocery_bags       |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| chip_bags          |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| sports_balls       |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+| homes_powered      |         0 |           NaN |  NaN |  NA |  NA |  NA |  NA |  NA |   NA |      |
+
+**Variable type: POSIXct**
+
+| skim_variable | n_missing | complete_rate | min | max  | median | n_unique |
+|:--------------|----------:|--------------:|:----|:-----|:-------|---------:|
+| date          |         0 |           NaN | Inf | -Inf | NA     |        0 |

@@ -17,7 +17,7 @@ library(haven)
 
 We want to read and clean the NYC transit dataset from the csv file. 
 
-```{r Read/Clean data}
+```{r Read/Clean Transit data}
 NYC_transit = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
 
 NYC_transit = janitor::clean_names(NYC_transit)
@@ -107,10 +107,6 @@ I am reformating data so that route number and route name are distinct variables
 
 * How many distinct stations serve the A train? Of the stations that serve the A train, how many are ADA compliant?
 
-```{r reformatting the variables???}
-
-
-```
 
 NYC_transit_tidy_data = 
   pivot_longer(
@@ -118,8 +114,26 @@ NYC_transit_tidy_data =
     route1:route11,
     names_to = "route_name", 
     values_to = "rout_number")
+    
+__Is the above code right?__
 
-## Problem 2 
+
+## Problem 2    
+
+We want to read and clean the Mr Trash Wheek dataset from the excel file. 
+
+```{r Read/Clean Trash data}
+Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>% 
+  janitor::clean_names() %>% 
+  na.omit(Trash_df)
+  
+```
+__Is this right?__
+
+
+```{r}
+skimr::skim(Trash_df)
+```
 
 
 
