@@ -18,11 +18,8 @@ library(haven)
 We want to read and clean the NYC transit dataset from the csv file. 
 
 ```{r Read/Clean Transit data}
-NYC_transit = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
-
-NYC_transit = janitor::clean_names(NYC_transit)
-
-NYC_transit
+NYC_transit = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
+  janitor::clean_names()
 
 skimr::skim(NYC_transit)
 ```
@@ -120,37 +117,44 @@ __Is the above code right?__
 
 ## Problem 2    
 
-We want to read and clean the Mr Trash Wheek dataset from the excel file. 
+We want to read and clean the Mr Trash Wheel dataset from the excel file. 
 
-```{r Read/Clean Trash data}
-Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx") %>% 
-  janitor::clean_names() 
+```{r }
+
+Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Mr. Trash Wheel") %>% 
+  janitor::clean_names() %>% 
+  select(-x15, -x16, -x17) %>% 
+  drop_na(dumpster) %>% 
+  transform(sports_balls = as.integer(sports_balls)) %>% 
+  dplyr::mutate(ID = row_number())
   
 ```
+
 __what does it mean by specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel?__
 
-```{r}
-skimr::skim(Trash_df)
-```
-
 I ensured the use of reasonable variable names. 
-
-
-```{r}
-Trash_df %>% filter(!is.na(dumpster))
-```
-
 I have ommited rows that do not include dumpster-specific data. 
+I have rounded the number of sports balls to the nearest integer and converted the result to an integer variable. 
+I created an ID column (variable) to faciliate the merging of the two datasets. 
 
+```{r }
 
-```{r}
-Trash_df$sports_balls = as.integer(as.numeric(Trash_df$sports_balls))
-
-Trash_df$sports_balls
+Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Professor Trash Wheel") %>% 
+  janitor::clean_names() %>% 
+  drop_na(dumpster) %>% 
+  transform(sports_balls = as.integer(sports_balls)) %>% 
+  dplyr::mutate(ID = row_number())
+  
 ```
 
-I have rounded the number of sports balls to the nearest integer and converted the result to an integer variable. 
+I used a similar process to import, clean, and organize the data for Professor Trash Wheel. 
 
+__What kind of variables must I create and which kind of join do you want us to do? __
+
+* Inner: keeps data that appear in both x and y
+* Left: keeps data that appear in x
+* Right: keeps data that appear in y
+* Full: keeps data that appear in either x or y
 
 
 
