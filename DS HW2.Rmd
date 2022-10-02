@@ -166,31 +166,28 @@ pols_month_df = read_csv("./data/pols-month.csv") %>%
   separate(mon, into = c("year", "month", "day"), sep = '-') %>% 
   transform(month = as.numeric(month))
 
+skimr::skim(pols_month_df)
 ```
 
-i have loaded and cleaned the data in pols-month.csv, as well as separated the column "mon" into "year", "month" and day". 
+i have loaded and cleaned the data in pols-month.csv, as well as separated the column "mon" into "year", "month" and day". I also converted the "month" variable into a numeric variable. 
 
 
 ```{r}
 pols_month_df %>%
   mutate(month = month.name[month])
+
+skimr::skim(pols_month_df)
 ```
 
 I replaced the month number with a month name.
 
-
 ```{r}
+pols_month_df = pols_month_df %>%
+     mutate(president = prez_gop + prez_dem) %>% 
+    select(-prez_gop, -prez_dem, -day)
+
 skimr::skim(pols_month_df)
 ```
-
-Checking the variables using skimr. 
-
-
-
-
-
-
-
 
 I also created a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 

@@ -542,8 +542,48 @@ pols_month_df = read_csv("./data/pols-month.csv") %>%
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
     ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
+``` r
+skimr::skim(pols_month_df)
+```
+
+|                                                  |               |
+|:-------------------------------------------------|:--------------|
+| Name                                             | pols_month_df |
+| Number of rows                                   | 822           |
+| Number of columns                                | 11            |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
+| Column type frequency:                           |               |
+| character                                        | 2             |
+| numeric                                          | 9             |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
+| Group variables                                  | None          |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| year          |         0 |             1 |   4 |   4 |     0 |       69 |          0 |
+| day           |         0 |             1 |   2 |   2 |     0 |        1 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |   mean |    sd |  p0 | p25 | p50 | p75 | p100 | hist  |
+|:--------------|----------:|--------------:|-------:|------:|----:|----:|----:|----:|-----:|:------|
+| month         |         0 |             1 |   6.48 |  3.45 |   1 |   3 |   6 |   9 |   12 | ▇▅▅▅▇ |
+| prez_gop      |         0 |             1 |   0.53 |  0.51 |   0 |   0 |   1 |   1 |    2 | ▇▁▇▁▁ |
+| gov_gop       |         0 |             1 |  22.48 |  5.68 |  12 |  18 |  22 |  28 |   34 | ▆▆▇▅▅ |
+| sen_gop       |         0 |             1 |  46.10 |  6.38 |  32 |  42 |  46 |  51 |   56 | ▃▃▇▇▇ |
+| rep_gop       |         0 |             1 | 194.92 | 29.24 | 141 | 176 | 195 | 222 |  253 | ▃▇▆▃▅ |
+| prez_dem      |         0 |             1 |   0.47 |  0.50 |   0 |   0 |   0 |   1 |    1 | ▇▁▁▁▇ |
+| gov_dem       |         0 |             1 |  27.20 |  5.94 |  17 |  22 |  28 |  32 |   41 | ▆▅▇▆▂ |
+| sen_dem       |         0 |             1 |  54.41 |  7.37 |  44 |  48 |  53 |  58 |   71 | ▇▆▇▃▂ |
+| rep_dem       |         0 |             1 | 244.97 | 31.37 | 188 | 211 | 250 | 268 |  301 | ▇▂▇▇▅ |
+
 i have loaded and cleaned the data in pols-month.csv, as well as
-separated the column “mon” into “year”, “month” and day”.
+separated the column “mon” into “year”, “month” and day”. I also
+converted the “month” variable into a numeric variable.
 
 ``` r
 pols_month_df %>%
@@ -2197,8 +2237,6 @@ pols_month_df %>%
     ## 821      44     188
     ## 822      44     188
 
-I replaced the month number with a month name.
-
 ``` r
 skimr::skim(pols_month_df)
 ```
@@ -2238,7 +2276,48 @@ Data summary
 | sen_dem       |         0 |             1 |  54.41 |  7.37 |  44 |  48 |  53 |  58 |   71 | ▇▆▇▃▂ |
 | rep_dem       |         0 |             1 | 244.97 | 31.37 | 188 | 211 | 250 | 268 |  301 | ▇▂▇▇▅ |
 
-Checking the variables using skimr.
+I replaced the month number with a month name.
+
+``` r
+pols_month_df = pols_month_df %>%
+     mutate(president = prez_gop + prez_dem) %>% 
+    select(-prez_gop, -prez_dem, -day)
+
+skimr::skim(pols_month_df)
+```
+
+|                                                  |               |
+|:-------------------------------------------------|:--------------|
+| Name                                             | pols_month_df |
+| Number of rows                                   | 822           |
+| Number of columns                                | 9             |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
+| Column type frequency:                           |               |
+| character                                        | 1             |
+| numeric                                          | 8             |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
+| Group variables                                  | None          |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| year          |         0 |             1 |   4 |   4 |     0 |       69 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |   mean |    sd |  p0 | p25 | p50 | p75 | p100 | hist  |
+|:--------------|----------:|--------------:|-------:|------:|----:|----:|----:|----:|-----:|:------|
+| month         |         0 |             1 |   6.48 |  3.45 |   1 |   3 |   6 |   9 |   12 | ▇▅▅▅▇ |
+| gov_gop       |         0 |             1 |  22.48 |  5.68 |  12 |  18 |  22 |  28 |   34 | ▆▆▇▅▅ |
+| sen_gop       |         0 |             1 |  46.10 |  6.38 |  32 |  42 |  46 |  51 |   56 | ▃▃▇▇▇ |
+| rep_gop       |         0 |             1 | 194.92 | 29.24 | 141 | 176 | 195 | 222 |  253 | ▃▇▆▃▅ |
+| gov_dem       |         0 |             1 |  27.20 |  5.94 |  17 |  22 |  28 |  32 |   41 | ▆▅▇▆▂ |
+| sen_dem       |         0 |             1 |  54.41 |  7.37 |  44 |  48 |  53 |  58 |   71 | ▇▆▇▃▂ |
+| rep_dem       |         0 |             1 | 244.97 | 31.37 | 188 | 211 | 250 | 268 |  301 | ▇▂▇▇▅ |
+| president     |         0 |             1 |   1.01 |  0.08 |   1 |   1 |   1 |   1 |    2 | ▇▁▁▁▁ |
 
 I also created a president variable taking values gop and dem, and
 remove prez_dem and prez_gop; and remove the day variable.
