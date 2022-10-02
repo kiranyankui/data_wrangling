@@ -358,7 +358,8 @@ It took a while but I figured it out.
 
 ## Description about the NYC_transit dataset
 
-1.  The dataset contains 32 columns (variables) and rows (observations).
+1.  The dataset contains 32 columns (variables) and 1868 rows
+    (observations).
 
 2.  The variables are as follows: division, line, station_name, routes,
     entrance type, entry, exit only, vending, staffing, staff hours, ADA
@@ -522,3 +523,21 @@ want us to do? **
 -   Left: keeps data that appear in x
 -   Right: keeps data that appear in y
 -   Full: keeps data that appear in either x or y
+
+## Problem 3
+
+Loading and cleaning the data in pols-month.csv
+
+``` r
+pols_month_df = read_csv("./data/pols-month.csv") %>% 
+  janitor::clean_names() 
+```
+
+    ## Rows: 822 Columns: 9
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## dbl  (8): prez_gop, gov_gop, sen_gop, rep_gop, prez_dem, gov_dem, sen_dem, r...
+    ## date (1): mon
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.

@@ -54,7 +54,7 @@ It took a while but I figured it out.
 
 ## Description about the NYC_transit dataset
 
-1. The dataset contains 32 columns (variables) and rows  (observations). 
+1. The dataset contains 32 columns (variables) and 1868 rows  (observations). 
 
 2. The variables are as follows: division, line, station_name, routes, entrance type, entry, exit only, vending, staffing, staff hours, ADA notes, north south street, east west street, corner, station location, entrance location, ada, free crossover, station lattitude and longitude, and entrance lattitude and longitude. 
 
@@ -157,8 +157,15 @@ __What kind of variables must I create and which kind of join do you want us to 
 * Full: keeps data that appear in either x or y
 
 
+## Problem 3
 
+Loading and cleaning the data in pols-month.csv
 
+```{r}
+pols_month_df = read_csv("./data/pols-month.csv") %>% 
+  janitor::clean_names() 
+  
+```
 
 
 
