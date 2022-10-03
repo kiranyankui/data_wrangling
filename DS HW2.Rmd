@@ -58,7 +58,7 @@ It took a while but I figured it out.
 
 2. The variables are as follows: division, line, station_name, routes, entrance type, entry, exit only, vending, staffing, staff hours, ADA notes, north south street, east west street, corner, station location, entrance location, ada, free crossover, station lattitude and longitude, and entrance lattitude and longitude. 
 
-3. I read and clean the data; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable
+3. I read and clean object names using clean names () in janitor; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable
 
 4. The data are tidy. 
 
@@ -159,6 +159,7 @@ __What kind of variables must I create and which kind of join do you want us to 
 
 ## Problem 3
 
+### Dataset for pols-month.csv
 
 ```{r}
 pols_month_df = read_csv("./data/pols-month.csv") %>% 
@@ -191,6 +192,34 @@ skimr::skim(pols_month_df)
 
 I also created a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
 
+
+
+### Dataset for snp.csv
+
+```{r}
+snp_df = read_csv("./data/snp.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(date, into = c("month", "day", "year"), sep = '/') %>% 
+  transform(month = as.numeric(month))
+
+skimr::skim(snp_df)
+```
+
+i have loaded and cleaned the data in snp.csv, as well as separated the column "date" into "month", "day", "year". I also converted the "month" variable into a numeric variable. 
+
+
+```{r}
+snp_df %>%
+  mutate(month = month.name[month])
+
+skimr::skim(snp_df)
+```
+
+I replaced the month number with a month name.
+
+### Tidying unemployment data
+
+__last part on: This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values__
 
 
 

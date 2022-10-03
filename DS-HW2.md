@@ -367,10 +367,10 @@ It took a while but I figured it out.
     location, entrance location, ada, free crossover, station lattitude
     and longitude, and entrance lattitude and longitude.
 
-3.  I read and clean the data; retain line, station, name, station
-    latitude / longitude, routes served, entry, vending, entrance type,
-    and ADA compliance. Convert the entry variable from character (YES
-    vs NO) to a logical variable
+3.  I read and clean object names using clean names () in janitor;
+    retain line, station, name, station latitude / longitude, routes
+    served, entry, vending, entrance type, and ADA compliance. Convert
+    the entry variable from character (YES vs NO) to a logical variable
 
 4.  The data are tidy.
 
@@ -525,6 +525,8 @@ want us to do? **
 -   Full: keeps data that appear in either x or y
 
 ## Problem 3
+
+### Dataset for pols-month.csv
 
 ``` r
 pols_month_df = read_csv("./data/pols-month.csv") %>% 
@@ -2321,3 +2323,891 @@ Data summary
 
 I also created a president variable taking values gop and dem, and
 remove prez_dem and prez_gop; and remove the day variable.
+
+### Dataset for snp.csv
+
+``` r
+snp_df = read_csv("./data/snp.csv") %>% 
+  janitor::clean_names() %>% 
+  separate(date, into = c("month", "day", "year"), sep = '/') %>% 
+  transform(month = as.numeric(month))
+```
+
+    ## Rows: 787 Columns: 2
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (1): date
+    ## dbl (1): close
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+skimr::skim(snp_df)
+```
+
+|                                                  |        |
+|:-------------------------------------------------|:-------|
+| Name                                             | snp_df |
+| Number of rows                                   | 787    |
+| Number of columns                                | 4      |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |        |
+| Column type frequency:                           |        |
+| character                                        | 2      |
+| numeric                                          | 2      |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |        |
+| Group variables                                  | None   |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| day           |         0 |             1 |   1 |   1 |     0 |        4 |          0 |
+| year          |         0 |             1 |   2 |   2 |     0 |       66 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |   mean |     sd |    p0 |   p25 |    p50 |   p75 |    p100 | hist  |
+|:--------------|----------:|--------------:|-------:|-------:|------:|------:|-------:|------:|--------:|:------|
+| month         |         0 |             1 |   6.48 |   3.45 |  1.00 |  3.00 |   6.00 |   9.0 |   12.00 | ▇▅▅▅▇ |
+| close         |         0 |             1 | 474.89 | 545.96 | 17.05 | 83.74 | 138.53 | 941.8 | 2107.39 | ▇▁▂▁▁ |
+
+i have loaded and cleaned the data in snp.csv, as well as separated the
+column “date” into “month”, “day”, “year”. I also converted the “month”
+variable into a numeric variable.
+
+``` r
+snp_df %>%
+  mutate(month = month.name[month])
+```
+
+    ##         month day year   close
+    ## 1        July   1   15 2079.65
+    ## 2        June   1   15 2063.11
+    ## 3         May   1   15 2107.39
+    ## 4       April   1   15 2085.51
+    ## 5       March   2   15 2067.89
+    ## 6    February   2   15 2104.50
+    ## 7     January   2   15 1994.99
+    ## 8    December   1   14 2058.90
+    ## 9    November   3   14 2067.56
+    ## 10    October   1   14 2018.05
+    ## 11  September   2   14 1972.29
+    ## 12     August   1   14 2003.37
+    ## 13       July   1   14 1930.67
+    ## 14       June   2   14 1960.23
+    ## 15        May   1   14 1923.57
+    ## 16      April   1   14 1883.95
+    ## 17      March   3   14 1872.34
+    ## 18   February   3   14 1859.45
+    ## 19    January   2   14 1782.59
+    ## 20   December   2   13 1848.36
+    ## 21   November   1   13 1805.81
+    ## 22    October   1   13 1756.54
+    ## 23  September   3   13 1681.55
+    ## 24     August   1   13 1632.97
+    ## 25       July   1   13 1685.73
+    ## 26       June   3   13 1606.28
+    ## 27        May   1   13 1630.74
+    ## 28      April   1   13 1597.57
+    ## 29      March   1   13 1569.19
+    ## 30   February   1   13 1514.68
+    ## 31    January   2   13 1498.11
+    ## 32   December   3   12 1426.19
+    ## 33   November   1   12 1416.18
+    ## 34    October   1   12 1412.16
+    ## 35  September   4   12 1440.67
+    ## 36     August   1   12 1406.58
+    ## 37       July   2   12 1379.32
+    ## 38       June   1   12 1362.16
+    ## 39        May   1   12 1310.33
+    ## 40      April   2   12 1397.91
+    ## 41      March   1   12 1408.47
+    ## 42   February   1   12 1365.68
+    ## 43    January   3   12 1312.41
+    ## 44   December   1   11 1257.60
+    ## 45   November   1   11 1246.96
+    ## 46    October   3   11 1253.30
+    ## 47  September   1   11 1131.42
+    ## 48     August   1   11 1218.89
+    ## 49       July   1   11 1292.28
+    ## 50       June   1   11 1320.64
+    ## 51        May   2   11 1345.20
+    ## 52      April   1   11 1363.61
+    ## 53      March   1   11 1325.83
+    ## 54   February   1   11 1327.22
+    ## 55    January   3   11 1286.12
+    ## 56   December   1   10 1257.64
+    ## 57   November   1   10 1180.55
+    ## 58    October   1   10 1183.26
+    ## 59  September   1   10 1141.20
+    ## 60     August   2   10 1049.33
+    ## 61       July   1   10 1101.60
+    ## 62       June   1   10 1030.71
+    ## 63        May   3   10 1089.41
+    ## 64      April   1   10 1186.69
+    ## 65      March   1   10 1169.43
+    ## 66   February   1   10 1104.49
+    ## 67    January   4   10 1073.87
+    ## 68   December   1   09 1115.10
+    ## 69   November   2   09 1095.63
+    ## 70    October   1   09 1036.19
+    ## 71  September   1   09 1057.08
+    ## 72     August   3   09 1020.62
+    ## 73       July   1   09  987.48
+    ## 74       June   1   09  919.32
+    ## 75        May   1   09  919.14
+    ## 76      April   1   09  872.81
+    ## 77      March   2   09  797.87
+    ## 78   February   2   09  735.09
+    ## 79    January   2   09  825.88
+    ## 80   December   1   08  903.25
+    ## 81   November   3   08  896.24
+    ## 82    October   1   08  968.75
+    ## 83  September   2   08 1166.36
+    ## 84     August   1   08 1282.83
+    ## 85       July   1   08 1267.38
+    ## 86       June   2   08 1280.00
+    ## 87        May   1   08 1400.38
+    ## 88      April   1   08 1385.59
+    ## 89      March   3   08 1322.70
+    ## 90   February   1   08 1330.63
+    ## 91    January   2   08 1378.55
+    ## 92   December   3   07 1468.36
+    ## 93   November   1   07 1481.14
+    ## 94    October   1   07 1549.38
+    ## 95  September   4   07 1526.75
+    ## 96     August   1   07 1473.99
+    ## 97       July   2   07 1455.27
+    ## 98       June   1   07 1503.35
+    ## 99        May   1   07 1530.62
+    ## 100     April   2   07 1482.37
+    ## 101     March   1   07 1420.86
+    ## 102  February   1   07 1406.82
+    ## 103   January   3   07 1438.24
+    ## 104  December   1   06 1418.30
+    ## 105  November   1   06 1400.63
+    ## 106   October   2   06 1377.94
+    ## 107 September   1   06 1335.85
+    ## 108    August   1   06 1303.82
+    ## 109      July   3   06 1276.66
+    ## 110      June   1   06 1270.20
+    ## 111       May   1   06 1270.09
+    ## 112     April   3   06 1310.61
+    ## 113     March   1   06 1294.87
+    ## 114  February   1   06 1280.66
+    ## 115   January   3   06 1280.08
+    ## 116  December   1   05 1248.29
+    ## 117  November   1   05 1249.48
+    ## 118   October   3   05 1207.01
+    ## 119 September   1   05 1228.81
+    ## 120    August   1   05 1220.33
+    ## 121      July   1   05 1234.18
+    ## 122      June   1   05 1191.33
+    ## 123       May   2   05 1191.50
+    ## 124     April   1   05 1156.85
+    ## 125     March   1   05 1180.59
+    ## 126  February   1   05 1203.60
+    ## 127   January   3   05 1181.27
+    ## 128  December   1   04 1211.92
+    ## 129  November   1   04 1173.82
+    ## 130   October   1   04 1130.20
+    ## 131 September   1   04 1114.58
+    ## 132    August   2   04 1104.24
+    ## 133      July   1   04 1101.72
+    ## 134      June   1   04 1140.84
+    ## 135       May   3   04 1120.68
+    ## 136     April   1   04 1107.30
+    ## 137     March   1   04 1126.21
+    ## 138  February   2   04 1144.94
+    ## 139   January   2   04 1131.13
+    ## 140  December   1   03 1111.92
+    ## 141  November   3   03 1058.20
+    ## 142   October   1   03 1050.71
+    ## 143 September   2   03  995.97
+    ## 144    August   1   03 1008.01
+    ## 145      July   1   03  990.31
+    ## 146      June   2   03  974.50
+    ## 147       May   1   03  963.59
+    ## 148     April   1   03  916.92
+    ## 149     March   3   03  848.18
+    ## 150  February   3   03  841.15
+    ## 151   January   2   03  855.70
+    ## 152  December   2   02  879.82
+    ## 153  November   1   02  936.31
+    ## 154   October   1   02  885.76
+    ## 155 September   3   02  815.28
+    ## 156    August   1   02  916.07
+    ## 157      July   1   02  911.62
+    ## 158      June   3   02  989.82
+    ## 159       May   1   02 1067.14
+    ## 160     April   1   02 1076.92
+    ## 161     March   1   02 1147.39
+    ## 162  February   1   02 1106.73
+    ## 163   January   2   02 1130.20
+    ## 164  December   3   01 1148.08
+    ## 165  November   1   01 1139.45
+    ## 166   October   1   01 1059.78
+    ## 167 September   4   01 1040.94
+    ## 168    August   1   01 1133.58
+    ## 169      July   2   01 1211.23
+    ## 170      June   1   01 1224.38
+    ## 171       May   1   01 1255.82
+    ## 172     April   2   01 1249.46
+    ## 173     March   1   01 1160.33
+    ## 174  February   1   01 1239.94
+    ## 175   January   2   01 1366.01
+    ## 176  December   1   00 1320.28
+    ## 177  November   1   00 1314.95
+    ## 178   October   2   00 1429.40
+    ## 179 September   1   00 1436.51
+    ## 180    August   1   00 1517.68
+    ## 181      July   3   00 1430.83
+    ## 182      June   1   00 1454.60
+    ## 183       May   1   00 1420.60
+    ## 184     April   3   00 1452.43
+    ## 185     March   1   00 1498.58
+    ## 186  February   1   00 1366.42
+    ## 187   January   3   00 1394.46
+    ## 188  December   1   99 1469.25
+    ## 189  November   1   99 1388.91
+    ## 190   October   1   99 1362.93
+    ## 191 September   1   99 1282.71
+    ## 192    August   2   99 1320.41
+    ## 193      July   1   99 1328.72
+    ## 194      June   1   99 1372.71
+    ## 195       May   3   99 1301.84
+    ## 196     April   1   99 1335.18
+    ## 197     March   1   99 1286.37
+    ## 198  February   1   99 1238.33
+    ## 199   January   4   99 1279.64
+    ## 200  December   1   98 1229.23
+    ## 201  November   2   98 1163.63
+    ## 202   October   1   98 1098.67
+    ## 203 September   1   98 1017.01
+    ## 204    August   3   98  957.28
+    ## 205      July   1   98 1120.67
+    ## 206      June   1   98 1133.84
+    ## 207       May   1   98 1090.82
+    ## 208     April   1   98 1111.75
+    ## 209     March   2   98 1101.75
+    ## 210  February   2   98 1049.34
+    ## 211   January   2   98  980.28
+    ## 212  December   1   97  970.43
+    ## 213  November   3   97  955.40
+    ## 214   October   1   97  914.62
+    ## 215 September   2   97  947.28
+    ## 216    August   1   97  899.47
+    ## 217      July   1   97  954.31
+    ## 218      June   2   97  885.14
+    ## 219       May   1   97  848.28
+    ## 220     April   1   97  801.34
+    ## 221     March   3   97  757.12
+    ## 222  February   3   97  790.82
+    ## 223   January   2   97  786.16
+    ## 224  December   2   96  740.74
+    ## 225  November   1   96  757.02
+    ## 226   October   1   96  705.27
+    ## 227 September   3   96  687.33
+    ## 228    August   1   96  651.99
+    ## 229      July   1   96  639.95
+    ## 230      June   3   96  670.63
+    ## 231       May   1   96  669.12
+    ## 232     April   1   96  654.17
+    ## 233     March   1   96  645.50
+    ## 234  February   1   96  640.43
+    ## 235   January   2   96  636.02
+    ## 236  December   1   95  615.93
+    ## 237  November   1   95  605.37
+    ## 238   October   2   95  581.50
+    ## 239 September   1   95  584.41
+    ## 240    August   1   95  561.88
+    ## 241      July   3   95  562.06
+    ## 242      June   1   95  544.75
+    ## 243       May   1   95  533.40
+    ## 244     April   3   95  514.71
+    ## 245     March   1   95  500.71
+    ## 246  February   1   95  487.39
+    ## 247   January   3   95  470.42
+    ## 248  December   1   94  459.27
+    ## 249  November   1   94  453.69
+    ## 250   October   3   94  472.35
+    ## 251 September   1   94  462.71
+    ## 252    August   1   94  475.49
+    ## 253      July   1   94  458.26
+    ## 254      June   1   94  444.27
+    ## 255       May   2   94  456.50
+    ## 256     April   4   94  450.91
+    ## 257     March   1   94  445.77
+    ## 258  February   1   94  467.14
+    ## 259   January   3   94  481.61
+    ## 260  December   1   93  466.45
+    ## 261  November   1   93  461.79
+    ## 262   October   1   93  467.83
+    ## 263 September   1   93  458.93
+    ## 264    August   2   93  463.56
+    ## 265      July   1   93  448.13
+    ## 266      June   1   93  450.53
+    ## 267       May   3   93  450.19
+    ## 268     April   1   93  440.19
+    ## 269     March   1   93  451.67
+    ## 270  February   1   93  443.38
+    ## 271   January   4   93  438.78
+    ## 272  December   1   92  435.71
+    ## 273  November   2   92  431.35
+    ## 274   October   1   92  418.68
+    ## 275 September   1   92  417.80
+    ## 276    August   3   92  414.03
+    ## 277      July   1   92  424.21
+    ## 278      June   1   92  408.14
+    ## 279       May   1   92  415.35
+    ## 280     April   1   92  414.95
+    ## 281     March   2   92  403.69
+    ## 282  February   3   92  412.70
+    ## 283   January   2   92  408.78
+    ## 284  December   2   91  417.09
+    ## 285  November   1   91  375.22
+    ## 286   October   1   91  392.45
+    ## 287 September   3   91  387.86
+    ## 288    August   1   91  395.43
+    ## 289      July   1   91  387.81
+    ## 290      June   3   91  371.16
+    ## 291       May   1   91  389.83
+    ## 292     April   1   91  375.34
+    ## 293     March   1   91  375.22
+    ## 294  February   1   91  367.07
+    ## 295   January   2   91  343.93
+    ## 296  December   3   90  330.22
+    ## 297  November   1   90  322.22
+    ## 298   October   1   90  304.00
+    ## 299 September   4   90  306.05
+    ## 300    August   1   90  322.56
+    ## 301      July   2   90  356.15
+    ## 302      June   1   90  358.02
+    ## 303       May   1   90  361.23
+    ## 304     April   2   90  330.80
+    ## 305     March   1   90  339.94
+    ## 306  February   1   90  331.89
+    ## 307   January   2   90  329.08
+    ## 308  December   1   89  353.40
+    ## 309  November   1   89  345.99
+    ## 310   October   2   89  340.36
+    ## 311 September   1   89  349.15
+    ## 312    August   1   89  351.45
+    ## 313      July   3   89  346.08
+    ## 314      June   1   89  317.98
+    ## 315       May   1   89  320.52
+    ## 316     April   3   89  309.64
+    ## 317     March   1   89  294.87
+    ## 318  February   1   89  288.86
+    ## 319   January   3   89  297.47
+    ## 320  December   1   88  277.72
+    ## 321  November   1   88  273.70
+    ## 322   October   3   88  278.97
+    ## 323 September   1   88  271.91
+    ## 324    August   1   88  261.52
+    ## 325      July   1   88  272.02
+    ## 326      June   1   88  273.50
+    ## 327       May   2   88  262.16
+    ## 328     April   4   88  261.33
+    ## 329     March   1   88  258.89
+    ## 330  February   1   88  267.82
+    ## 331   January   4   88  257.07
+    ## 332  December   1   87  247.08
+    ## 333  November   2   87  230.30
+    ## 334   October   1   87  251.79
+    ## 335 September   1   87  321.83
+    ## 336    August   3   87  329.80
+    ## 337      July   1   87  318.66
+    ## 338      June   1   87  304.00
+    ## 339       May   1   87  290.10
+    ## 340     April   1   87  288.36
+    ## 341     March   2   87  291.70
+    ## 342  February   2   87  284.20
+    ## 343   January   2   87  274.08
+    ## 344  December   1   86  242.17
+    ## 345  November   3   86  249.22
+    ## 346   October   1   86  243.98
+    ## 347 September   2   86  231.32
+    ## 348    August   1   86  252.93
+    ## 349      July   1   86  236.12
+    ## 350      June   2   86  250.84
+    ## 351       May   1   86  247.35
+    ## 352     April   1   86  235.52
+    ## 353     March   3   86  238.90
+    ## 354  February   3   86  226.92
+    ## 355   January   2   86  211.78
+    ## 356  December   2   85  211.28
+    ## 357  November   1   85  202.17
+    ## 358   October   1   85  189.82
+    ## 359 September   3   85  182.08
+    ## 360    August   1   85  188.63
+    ## 361      July   1   85  190.92
+    ## 362      June   3   85  191.85
+    ## 363       May   1   85  189.55
+    ## 364     April   1   85  179.83
+    ## 365     March   1   85  180.66
+    ## 366  February   1   85  181.18
+    ## 367   January   2   85  179.63
+    ## 368  December   3   84  167.24
+    ## 369  November   1   84  163.58
+    ## 370   October   1   84  166.09
+    ## 371 September   4   84  166.10
+    ## 372    August   1   84  166.68
+    ## 373      July   2   84  150.66
+    ## 374      June   1   84  153.18
+    ## 375       May   1   84  150.55
+    ## 376     April   2   84  160.05
+    ## 377     March   1   84  159.18
+    ## 378  February   1   84  157.06
+    ## 379   January   3   84  163.41
+    ## 380  December   1   83  164.93
+    ## 381  November   1   83  166.40
+    ## 382   October   3   83  163.55
+    ## 383 September   1   83  166.07
+    ## 384    August   1   83  164.40
+    ## 385      July   1   83  162.56
+    ## 386      June   1   83  167.64
+    ## 387       May   2   83  162.39
+    ## 388     April   4   83  164.43
+    ## 389     March   1   83  152.96
+    ## 390  February   1   83  148.06
+    ## 391   January   3   83  145.30
+    ## 392  December   1   82  140.64
+    ## 393  November   1   82  138.53
+    ## 394   October   1   82  133.72
+    ## 395 September   1   82  120.42
+    ## 396    August   2   82  119.51
+    ## 397      July   1   82  107.09
+    ## 398      June   1   82  109.61
+    ## 399       May   3   82  111.88
+    ## 400     April   1   82  116.44
+    ## 401     March   1   82  111.96
+    ## 402  February   1   82  113.11
+    ## 403   January   4   82  120.40
+    ## 404  December   1   81  122.55
+    ## 405  November   2   81  126.35
+    ## 406   October   1   81  121.89
+    ## 407 September   1   81  116.18
+    ## 408    August   3   81  122.79
+    ## 409      July   1   81  130.92
+    ## 410      June   1   81  131.21
+    ## 411       May   1   81  132.59
+    ## 412     April   1   81  132.81
+    ## 413     March   2   81  136.00
+    ## 414  February   2   81  131.27
+    ## 415   January   2   81  129.55
+    ## 416  December   1   80  135.76
+    ## 417  November   3   80  140.52
+    ## 418   October   1   80  127.47
+    ## 419 September   2   80  125.46
+    ## 420    August   1   80  122.38
+    ## 421      July   1   80  121.67
+    ## 422      June   2   80  114.24
+    ## 423       May   1   80  111.24
+    ## 424     April   1   80  106.29
+    ## 425     March   3   80  102.09
+    ## 426  February   1   80  113.66
+    ## 427   January   2   80  114.16
+    ## 428  December   3   79  107.94
+    ## 429  November   1   79  106.16
+    ## 430   October   1   79  101.82
+    ## 431 September   4   79  109.32
+    ## 432    August   1   79  109.32
+    ## 433      July   2   79  103.81
+    ## 434      June   1   79  102.91
+    ## 435       May   1   79   99.08
+    ## 436     April   2   79  101.76
+    ## 437     March   1   79  101.59
+    ## 438  February   1   79   96.28
+    ## 439   January   2   79   99.93
+    ## 440  December   1   78   96.11
+    ## 441  November   1   78   94.70
+    ## 442   October   2   78   93.15
+    ## 443 September   1   78  102.54
+    ## 444    August   1   78  103.29
+    ## 445      July   3   78  100.68
+    ## 446      June   1   78   95.53
+    ## 447       May   1   78   97.24
+    ## 448     April   3   78   96.83
+    ## 449     March   1   78   89.21
+    ## 450  February   1   78   87.04
+    ## 451   January   3   78   89.25
+    ## 452  December   1   77   95.10
+    ## 453  November   1   77   94.83
+    ## 454   October   3   77   92.34
+    ## 455 September   1   77   96.53
+    ## 456    August   1   77   96.77
+    ## 457      July   1   77   98.85
+    ## 458      June   1   77  100.48
+    ## 459       May   2   77   96.12
+    ## 460     April   1   77   98.44
+    ## 461     March   1   77   98.42
+    ## 462  February   1   77   99.82
+    ## 463   January   3   77  102.03
+    ## 464  December   1   76  107.46
+    ## 465  November   1   76  102.10
+    ## 466   October   1   76  102.90
+    ## 467 September   1   76  105.24
+    ## 468    August   2   76  102.91
+    ## 469      July   1   76  103.44
+    ## 470      June   1   76  104.28
+    ## 471       May   3   76  100.18
+    ## 472     April   1   76  101.64
+    ## 473     March   1   76  102.77
+    ## 474  February   2   76   99.71
+    ## 475   January   2   76  100.86
+    ## 476  December   1   75   90.19
+    ## 477  November   3   75   91.24
+    ## 478   October   1   75   89.04
+    ## 479 September   2   75   83.87
+    ## 480    August   1   75   86.88
+    ## 481      July   1   75   88.75
+    ## 482      June   2   75   95.19
+    ## 483       May   1   75   91.15
+    ## 484     April   1   75   87.30
+    ## 485     March   3   75   83.36
+    ## 486  February   3   75   81.59
+    ## 487   January   2   75   76.98
+    ## 488  December   2   74   68.56
+    ## 489  November   1   74   69.97
+    ## 490   October   1   74   73.90
+    ## 491 September   3   74   63.54
+    ## 492    August   1   74   72.15
+    ## 493      July   1   74   79.31
+    ## 494      June   3   74   86.00
+    ## 495       May   1   74   87.28
+    ## 496     April   1   74   90.31
+    ## 497     March   1   74   93.98
+    ## 498  February   1   74   96.22
+    ## 499   January   2   74   96.57
+    ## 500  December   3   73   97.55
+    ## 501  November   1   73   95.96
+    ## 502   October   1   73  108.29
+    ## 503 September   4   73  108.43
+    ## 504    August   1   73  104.25
+    ## 505      July   2   73  108.22
+    ## 506      June   1   73  104.26
+    ## 507       May   1   73  104.95
+    ## 508     April   2   73  106.97
+    ## 509     March   1   73  111.52
+    ## 510  February   1   73  111.68
+    ## 511   January   2   73  116.03
+    ## 512  December   1   72  118.05
+    ## 513  November   1   72  116.67
+    ## 514   October   2   72  111.58
+    ## 515 September   1   72  110.55
+    ## 516    August   1   72  111.09
+    ## 517      July   3   72  107.39
+    ## 518      June   1   72  107.14
+    ## 519       May   1   72  109.53
+    ## 520     April   3   72  107.67
+    ## 521     March   1   72  107.20
+    ## 522  February   1   72  106.57
+    ## 523   January   3   72  103.94
+    ## 524  December   1   71  102.09
+    ## 525  November   1   71   93.99
+    ## 526   October   1   71   94.23
+    ## 527 September   1   71   98.34
+    ## 528    August   2   71   99.03
+    ## 529      July   1   71   95.58
+    ## 530      June   1   71   98.70
+    ## 531       May   3   71   99.63
+    ## 532     April   1   71  103.95
+    ## 533     March   1   71  100.31
+    ## 534  February   1   71   96.75
+    ## 535   January   4   71   95.88
+    ## 536  December   1   70   92.15
+    ## 537  November   2   70   87.20
+    ## 538   October   1   70   83.25
+    ## 539 September   1   70   84.30
+    ## 540    August   3   70   81.52
+    ## 541      July   1   70   78.05
+    ## 542      June   1   70   72.72
+    ## 543       May   1   70   76.55
+    ## 544     April   1   70   81.52
+    ## 545     March   2   70   89.63
+    ## 546  February   2   70   89.50
+    ## 547   January   2   70   85.02
+    ## 548  December   1   69   92.06
+    ## 549  November   3   69   93.81
+    ## 550   October   1   69   97.12
+    ## 551 September   2   69   93.12
+    ## 552    August   1   69   95.51
+    ## 553      July   1   69   91.83
+    ## 554      June   2   69   97.71
+    ## 555       May   1   69  103.46
+    ## 556     April   1   69  103.69
+    ## 557     March   3   69  101.51
+    ## 558  February   3   69   98.13
+    ## 559   January   2   69  103.01
+    ## 560  December   2   68  103.86
+    ## 561  November   1   68  108.37
+    ## 562   October   1   68  103.41
+    ## 563 September   3   68  102.67
+    ## 564    August   1   68   98.86
+    ## 565      July   1   68   97.74
+    ## 566      June   3   68   99.58
+    ## 567       May   1   68   98.68
+    ## 568     April   1   68   97.46
+    ## 569     March   1   68   90.20
+    ## 570  February   1   68   89.36
+    ## 571   January   2   68   92.24
+    ## 572  December   1   67   96.47
+    ## 573  November   1   67   94.00
+    ## 574   October   2   67   93.30
+    ## 575 September   1   67   96.71
+    ## 576    August   1   67   93.64
+    ## 577      July   3   67   94.75
+    ## 578      June   1   67   90.64
+    ## 579       May   1   67   89.08
+    ## 580     April   3   67   94.01
+    ## 581     March   1   67   90.20
+    ## 582  February   1   67   86.78
+    ## 583   January   3   67   86.61
+    ## 584  December   1   66   80.33
+    ## 585  November   1   66   80.45
+    ## 586   October   3   66   80.20
+    ## 587 September   1   66   76.56
+    ## 588    August   1   66   77.10
+    ## 589      July   1   66   83.60
+    ## 590      June   1   66   84.74
+    ## 591       May   2   66   86.13
+    ## 592     April   1   66   91.06
+    ## 593     March   1   66   89.23
+    ## 594  February   1   66   91.22
+    ## 595   January   3   66   92.88
+    ## 596  December   1   65   92.43
+    ## 597  November   1   65   91.61
+    ## 598   October   1   65   92.42
+    ## 599 September   1   65   89.96
+    ## 600    August   2   65   87.17
+    ## 601      July   1   65   85.25
+    ## 602      June   1   65   84.12
+    ## 603       May   3   65   88.42
+    ## 604     April   1   65   89.11
+    ## 605     March   1   65   86.16
+    ## 606  February   1   65   87.43
+    ## 607   January   4   65   87.56
+    ## 608  December   1   64   84.75
+    ## 609  November   2   64   84.42
+    ## 610   October   1   64   84.86
+    ## 611 September   1   64   84.18
+    ## 612    August   3   64   81.83
+    ## 613      July   1   64   83.18
+    ## 614      June   1   64   81.69
+    ## 615       May   1   64   80.37
+    ## 616     April   1   64   79.46
+    ## 617     March   2   64   78.98
+    ## 618  February   3   64   77.80
+    ## 619   January   2   64   77.04
+    ## 620  December   2   63   75.02
+    ## 621  November   1   63   73.23
+    ## 622   October   1   63   74.01
+    ## 623 September   3   63   71.70
+    ## 624    August   1   63   72.50
+    ## 625      July   1   63   69.13
+    ## 626      June   3   63   69.37
+    ## 627       May   1   63   70.80
+    ## 628     April   1   63   69.80
+    ## 629     March   1   63   66.57
+    ## 630  February   1   63   64.29
+    ## 631   January   2   63   66.20
+    ## 632  December   3   62   63.10
+    ## 633  November   1   62   62.26
+    ## 634   October   1   62   56.52
+    ## 635 September   4   62   56.27
+    ## 636    August   1   62   59.12
+    ## 637      July   2   62   58.23
+    ## 638      June   1   62   54.75
+    ## 639       May   1   62   59.63
+    ## 640     April   2   62   65.24
+    ## 641     March   1   62   69.55
+    ## 642  February   1   62   69.96
+    ## 643   January   2   62   68.84
+    ## 644  December   1   61   71.55
+    ## 645  November   1   61   71.32
+    ## 646   October   2   61   68.62
+    ## 647 September   1   61   66.73
+    ## 648    August   1   61   68.07
+    ## 649      July   3   61   66.76
+    ## 650      June   1   61   64.64
+    ## 651       May   1   61   66.56
+    ## 652     April   3   61   65.31
+    ## 653     March   1   61   65.06
+    ## 654  February   1   61   63.44
+    ## 655   January   3   61   61.78
+    ## 656  December   1   60   58.11
+    ## 657  November   1   60   55.54
+    ## 658   October   3   60   53.39
+    ## 659 September   1   60   53.52
+    ## 660    August   1   60   56.96
+    ## 661      July   1   60   55.51
+    ## 662      June   1   60   56.92
+    ## 663       May   2   60   55.83
+    ## 664     April   1   60   54.37
+    ## 665     March   1   60   55.34
+    ## 666  February   1   60   56.12
+    ## 667   January   4   60   55.61
+    ## 668  December   1   59   59.89
+    ## 669  November   2   59   58.28
+    ## 670   October   1   59   57.52
+    ## 671 September   1   59   56.88
+    ## 672    August   3   59   59.60
+    ## 673      July   1   59   60.51
+    ## 674      June   1   59   58.47
+    ## 675       May   1   59   58.68
+    ## 676     April   1   59   57.59
+    ## 677     March   2   59   55.44
+    ## 678  February   2   59   55.41
+    ## 679   January   2   59   55.45
+    ## 680  December   1   58   55.21
+    ## 681  November   3   58   52.48
+    ## 682   October   1   58   51.33
+    ## 683 September   2   58   50.06
+    ## 684    August   1   58   47.75
+    ## 685      July   1   58   47.19
+    ## 686      June   2   58   45.24
+    ## 687       May   1   58   44.09
+    ## 688     April   1   58   43.44
+    ## 689     March   3   58   42.10
+    ## 690  February   3   58   40.84
+    ## 691   January   2   58   41.70
+    ## 692  December   2   57   39.99
+    ## 693  November   1   57   41.72
+    ## 694   October   1   57   41.06
+    ## 695 September   3   57   42.42
+    ## 696    August   1   57   45.22
+    ## 697      July   1   57   47.91
+    ## 698      June   3   57   47.37
+    ## 699       May   1   57   47.43
+    ## 700     April   1   57   45.74
+    ## 701     March   1   57   44.11
+    ## 702  February   1   57   43.26
+    ## 703   January   2   57   44.72
+    ## 704  December   3   56   46.67
+    ## 705  November   1   56   45.08
+    ## 706   October   1   56   45.58
+    ## 707 September   4   56   45.35
+    ## 708    August   1   56   47.51
+    ## 709      July   2   56   49.39
+    ## 710      June   1   56   46.97
+    ## 711       May   1   56   45.20
+    ## 712     April   2   56   48.38
+    ## 713     March   1   56   48.48
+    ## 714  February   1   56   45.34
+    ## 715   January   3   56   43.82
+    ## 716  December   1   55   45.48
+    ## 717  November   1   55   45.51
+    ## 718   October   3   55   42.34
+    ## 719 September   1   55   43.67
+    ## 720    August   1   55   43.18
+    ## 721      July   1   55   43.52
+    ## 722      June   1   55   41.03
+    ## 723       May   2   55   37.91
+    ## 724     April   1   55   37.96
+    ## 725     March   1   55   36.58
+    ## 726  February   1   55   36.76
+    ## 727   January   3   55   36.63
+    ## 728  December   1   54   35.98
+    ## 729  November   1   54   34.24
+    ## 730   October   1   54   31.68
+    ## 731 September   1   54   32.31
+    ## 732    August   2   54   29.83
+    ## 733      July   1   54   30.88
+    ## 734      June   1   54   29.21
+    ## 735       May   3   54   29.19
+    ## 736     April   1   54   28.26
+    ## 737     March   1   54   26.94
+    ## 738  February   1   54   26.15
+    ## 739   January   4   54   26.08
+    ## 740  December   1   53   24.81
+    ## 741  November   2   53   24.76
+    ## 742   October   1   53   24.54
+    ## 743 September   1   53   23.35
+    ## 744    August   3   53   23.32
+    ## 745      July   1   53   24.75
+    ## 746      June   1   53   24.14
+    ## 747       May   1   53   24.54
+    ## 748     April   1   53   24.62
+    ## 749     March   2   53   25.29
+    ## 750  February   2   53   25.90
+    ## 751   January   2   53   26.38
+    ## 752  December   1   52   26.57
+    ## 753  November   3   52   25.66
+    ## 754   October   1   52   24.52
+    ## 755 September   2   52   24.54
+    ## 756    August   1   52   25.03
+    ## 757      July   1   52   25.40
+    ## 758      June   2   52   24.96
+    ## 759       May   1   52   23.86
+    ## 760     April   1   52   23.32
+    ## 761     March   3   52   24.37
+    ## 762  February   1   52   23.26
+    ## 763   January   2   52   24.14
+    ## 764  December   3   51   23.77
+    ## 765  November   1   51   22.88
+    ## 766   October   1   51   22.94
+    ## 767 September   4   51   23.26
+    ## 768    August   1   51   23.28
+    ## 769      July   2   51   22.40
+    ## 770      June   1   51   20.96
+    ## 771       May   1   51   21.52
+    ## 772     April   2   51   22.43
+    ## 773     March   1   51   21.48
+    ## 774  February   1   51   21.80
+    ## 775   January   2   51   21.66
+    ## 776  December   1   50   20.43
+    ## 777  November   1   50   19.51
+    ## 778   October   2   50   19.53
+    ## 779 September   1   50   19.45
+    ## 780    August   1   50   18.42
+    ## 781      July   3   50   17.84
+    ## 782      June   1   50   17.69
+    ## 783       May   1   50   18.78
+    ## 784     April   3   50   17.96
+    ## 785     March   1   50   17.29
+    ## 786  February   1   50   17.22
+    ## 787   January   3   50   17.05
+
+``` r
+skimr::skim(snp_df)
+```
+
+|                                                  |        |
+|:-------------------------------------------------|:-------|
+| Name                                             | snp_df |
+| Number of rows                                   | 787    |
+| Number of columns                                | 4      |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |        |
+| Column type frequency:                           |        |
+| character                                        | 2      |
+| numeric                                          | 2      |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |        |
+| Group variables                                  | None   |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| day           |         0 |             1 |   1 |   1 |     0 |        4 |          0 |
+| year          |         0 |             1 |   2 |   2 |     0 |       66 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |   mean |     sd |    p0 |   p25 |    p50 |   p75 |    p100 | hist  |
+|:--------------|----------:|--------------:|-------:|-------:|------:|------:|-------:|------:|--------:|:------|
+| month         |         0 |             1 |   6.48 |   3.45 |  1.00 |  3.00 |   6.00 |   9.0 |   12.00 | ▇▅▅▅▇ |
+| close         |         0 |             1 | 474.89 | 545.96 | 17.05 | 83.74 | 138.53 | 941.8 | 2107.39 | ▇▁▂▁▁ |
+
+I replaced the month number with a month name.
+
+### Tidying unemployment data
+
+**last part on: This process will involve switching from “wide” to
+“long” format; ensuring that key variables have the same name; and
+ensuring that key variables take the same values**
