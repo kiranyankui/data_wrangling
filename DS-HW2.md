@@ -120,10 +120,10 @@ Now, we want to retain the following variables:
 -   ADA compliance
 
 ``` r
-select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada, ada_notes)
+select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada)
 ```
 
-    ## # A tibble: 1,868 × 20
+    ## # A tibble: 1,868 × 19
     ##    line     station_…¹ stati…² stati…³ route1 route2 route3 route4 route5 route6
     ##    <chr>    <chr>        <dbl>   <dbl> <chr>  <chr>  <chr>  <chr>  <chr>  <chr> 
     ##  1 4 Avenue 25th St       40.7   -74.0 R      <NA>   <NA>   <NA>   <NA>   <NA>  
@@ -136,10 +136,10 @@ select(NYC_transit, line, station_name, station_latitude, station_longitude, rou
     ##  8 4 Avenue 45th St       40.6   -74.0 R      <NA>   <NA>   <NA>   <NA>   <NA>  
     ##  9 4 Avenue 45th St       40.6   -74.0 R      <NA>   <NA>   <NA>   <NA>   <NA>  
     ## 10 4 Avenue 53rd St       40.6   -74.0 R      <NA>   <NA>   <NA>   <NA>   <NA>  
-    ## # … with 1,858 more rows, 10 more variables: route7 <chr>, route8 <dbl>,
+    ## # … with 1,858 more rows, 9 more variables: route7 <chr>, route8 <dbl>,
     ## #   route9 <dbl>, route10 <dbl>, route11 <dbl>, entry <chr>, vending <chr>,
-    ## #   entrance_type <chr>, ada <lgl>, ada_notes <chr>, and abbreviated variable
-    ## #   names ¹​station_name, ²​station_latitude, ³​station_longitude
+    ## #   entrance_type <chr>, ada <lgl>, and abbreviated variable names
+    ## #   ¹​station_name, ²​station_latitude, ³​station_longitude
 
 ``` r
 NYC_transit
@@ -354,18 +354,20 @@ NYC_transit
     ## #   corner <chr>, entrance_latitude <dbl>, entrance_longitude <dbl>,
     ## #   station_location <chr>, entrance_location <chr>, and abbreviated variable …
 
-It took a while but I figured it out.
-
 ## Description about the NYC_transit dataset
 
 1.  The dataset contains 32 columns (variables) and 1868 rows
     (observations).
 
-2.  The variables are as follows: division, line, station_name, routes,
-    entrance type, entry, exit only, vending, staffing, staff hours, ADA
-    notes, north south street, east west street, corner, station
-    location, entrance location, ada, free crossover, station lattitude
-    and longitude, and entrance lattitude and longitude.
+2.  The variables from the dataset contains line, station_name,
+    station_latitude, station_longitude, routes1 to 11, entry, vending,
+    entrance_type, ada
+
+division, line, station_name, routes, entrance type, entry, exit only,
+vending, staffing, staff hours, ADA notes, north south street, east west
+street, corner, station location, entrance location, ada, free
+crossover, station lattitude and longitude, and entrance lattitude and
+longitude.
 
 3.  I read and clean object names using clean names () in janitor;
     retain line, station, name, station latitude / longitude, routes
@@ -471,29 +473,20 @@ variables.
 -   How many distinct stations serve the A train? Of the stations that
     serve the A train, how many are ADA compliant?
 
-NYC_transit_tidy_data = pivot_longer( NYC_transit, route1:route11,
-names_to = “route_name”, values_to = “rout_number”)
-
-**Is the above code right?**
-
 ## Problem 2
 
 We want to read and clean the Mr Trash Wheel dataset from the excel
 file.
 
 ``` r
-Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Mr. Trash Wheel") %>% 
+Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+  sheet="Mr. Trash Wheel", 
+  range = "A2:N535",
+  skip = 1) %>% 
   janitor::clean_names() %>% 
-  select(-x15, -x16, -x17) %>% 
   drop_na(dumpster) %>% 
-  transform(sports_balls = as.integer(sports_balls)) %>% 
-  dplyr::mutate(ID = row_number())
+  transform(sports_balls = as.integer(sports_balls)) 
 ```
-
-    ## New names:
-    ## • `` -> `...15`
-    ## • `` -> `...16`
-    ## • `` -> `...17`
 
 **what does it mean by specify the sheet in the Excel file and to omit
 non-data entries (rows with notes / figures; columns containing notes)
@@ -506,23 +499,54 @@ integer variable. I created an ID column (variable) to faciliate the
 merging of the two datasets.
 
 ``` r
-Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Professor Trash Wheel") %>% 
+Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+  sheet = "Professor Trash Wheel",
+  range = "A2:N117",
+  skip = 1) %>% 
   janitor::clean_names() %>% 
   drop_na(dumpster) %>% 
   transform(sports_balls = as.integer(sports_balls)) %>% 
-  dplyr::mutate(ID = row_number())
+  add_column(name = "Professor Trash Wheel") %>%
+  mutate(dumpster = as.character(dumpster))
 ```
 
-I used a similar process to import, clean, and organize the data for
-Professor Trash Wheel.
+Joining the datasets for Mr Trash Wheel and Professor Trash Wheel
 
-**What kind of variables must I create and which kind of join do you
-want us to do? **
+``` r
+Both_Trash_df = 
+  full_join(Mr_Trash_df, Pf_Trash_df)
+```
 
--   Inner: keeps data that appear in both x and y
--   Left: keeps data that appear in x
--   Right: keeps data that appear in y
--   Full: keeps data that appear in either x or y
+    ## Joining, by = c("dumpster", "month", "year", "date", "weight_tons",
+    ## "volume_cubic_yards", "plastic_bottles", "polystyrene", "cigarette_butts",
+    ## "glass_bottles", "grocery_bags", "chip_bags", "sports_balls", "homes_powered")
+
+**Mr Trash Wheel dataset (Mr_Trash_df)** \* there are 14 columns
+(variables) and 454 rows (observations)
+
+**Professor Trash Wheel (Pf_Trash_df)** \* there are 15 columns
+(variables) and 71 rows (observations).
+
+**combined dataset (Both_Trash_df)** \* There are 15 columns (variables)
+and 525 rows (observations). \* This dataset includes the following
+variables: dumpster, month, year, date, weight_tons, volume_cubic_yards,
+plastic_bottles, polystyrene, cigarette_butts, glass_bottles,
+grocery_bags, chip_bags, sports_balls, homes_powered, name.
+
+This dataset contains:
+
+-   the weight of trash collected in tons
+-   number of trash items collected (plastic bottles, polystyrene,
+    cigarette butts, grocery bags, glass bottles, chip bags, and sports
+    balls)
+-   timing of trash collection by Mr Trash wheel and professor trash
+    wheel
+
+The total weight of trash collected by Professor Trash Wheel is 135.5
+tons.
+
+The total number of sports balls collected by Mr. Trash Wheel in 2020 is
+856 balls.
 
 ## Problem 3
 
@@ -532,7 +556,8 @@ want us to do? **
 pols_month_df = read_csv("./data/pols-month.csv") %>% 
   janitor::clean_names() %>% 
   separate(mon, into = c("year", "month", "day"), sep = '-') %>% 
-  transform(month = as.numeric(month))
+  transform(month = as.numeric(month)) %>%
+  mutate(month = month.name[month])
 ```
 
     ## Rows: 822 Columns: 9
@@ -555,8 +580,8 @@ skimr::skim(pols_month_df)
 | Number of columns                                | 11            |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
 | Column type frequency:                           |               |
-| character                                        | 2             |
-| numeric                                          | 9             |
+| character                                        | 3             |
+| numeric                                          | 8             |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
 | Group variables                                  | None          |
 
@@ -567,13 +592,13 @@ Data summary
 | skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
 |:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
 | year          |         0 |             1 |   4 |   4 |     0 |       69 |          0 |
+| month         |         0 |             1 |   3 |   9 |     0 |       12 |          0 |
 | day           |         0 |             1 |   2 |   2 |     0 |        1 |          0 |
 
 **Variable type: numeric**
 
 | skim_variable | n_missing | complete_rate |   mean |    sd |  p0 | p25 | p50 | p75 | p100 | hist  |
 |:--------------|----------:|--------------:|-------:|------:|----:|----:|----:|----:|-----:|:------|
-| month         |         0 |             1 |   6.48 |  3.45 |   1 |   3 |   6 |   9 |   12 | ▇▅▅▅▇ |
 | prez_gop      |         0 |             1 |   0.53 |  0.51 |   0 |   0 |   1 |   1 |    2 | ▇▁▇▁▁ |
 | gov_gop       |         0 |             1 |  22.48 |  5.68 |  12 |  18 |  22 |  28 |   34 | ▆▆▇▅▅ |
 | sen_gop       |         0 |             1 |  46.10 |  6.38 |  32 |  42 |  46 |  51 |   56 | ▃▃▇▇▇ |
@@ -592,1652 +617,1652 @@ pols_month_df %>%
   mutate(month = month.name[month])
 ```
 
-    ##     year     month day prez_gop gov_gop sen_gop rep_gop prez_dem gov_dem
-    ## 1   1947   January  15        0      23      51     253        1      23
-    ## 2   1947  February  15        0      23      51     253        1      23
-    ## 3   1947     March  15        0      23      51     253        1      23
-    ## 4   1947     April  15        0      23      51     253        1      23
-    ## 5   1947       May  15        0      23      51     253        1      23
-    ## 6   1947      June  15        0      23      51     253        1      23
-    ## 7   1947      July  15        0      23      51     253        1      23
-    ## 8   1947    August  15        0      23      51     253        1      23
-    ## 9   1947 September  15        0      23      51     253        1      23
-    ## 10  1947   October  15        0      23      51     253        1      23
-    ## 11  1947  November  15        0      24      51     253        1      23
-    ## 12  1947  December  15        0      24      51     253        1      23
-    ## 13  1948   January  15        0      22      53     253        1      24
-    ## 14  1948  February  15        0      22      53     253        1      24
-    ## 15  1948     March  15        0      22      53     253        1      24
-    ## 16  1948     April  15        0      22      53     253        1      24
-    ## 17  1948       May  15        0      22      53     253        1      24
-    ## 18  1948      June  15        0      22      53     253        1      24
-    ## 19  1948      July  15        0      22      53     253        1      24
-    ## 20  1948    August  15        0      22      53     253        1      24
-    ## 21  1948 September  15        0      22      53     253        1      24
-    ## 22  1948   October  15        0      22      53     253        1      24
-    ## 23  1948  November  15        0      22      53     253        1      24
-    ## 24  1948  December  15        0      22      53     253        1      24
-    ## 25  1949   January  15        0      18      45     177        1      29
-    ## 26  1949  February  15        0      18      45     177        1      29
-    ## 27  1949     March  15        0      18      45     177        1      29
-    ## 28  1949     April  15        0      18      45     177        1      29
-    ## 29  1949       May  15        0      18      45     177        1      29
-    ## 30  1949      June  15        0      18      45     177        1      29
-    ## 31  1949      July  15        0      18      45     177        1      30
-    ## 32  1949    August  15        0      18      45     177        1      30
-    ## 33  1949 September  15        0      18      45     177        1      30
-    ## 34  1949   October  15        0      18      45     177        1      30
-    ## 35  1949  November  15        0      18      45     177        1      30
-    ## 36  1949  December  15        0      18      45     177        1      30
-    ## 37  1950   January  15        0      18      44     177        1      29
-    ## 38  1950  February  15        0      18      44     177        1      29
-    ## 39  1950     March  15        0      18      44     177        1      29
-    ## 40  1950     April  15        0      18      44     177        1      29
-    ## 41  1950       May  15        0      18      44     177        1      29
-    ## 42  1950      June  15        0      18      44     177        1      29
-    ## 43  1950      July  15        0      18      44     177        1      29
-    ## 44  1950    August  15        0      18      44     177        1      29
-    ## 45  1950 September  15        0      18      44     177        1      29
-    ## 46  1950   October  15        0      18      44     177        1      29
-    ## 47  1950  November  15        0      18      44     177        1      29
-    ## 48  1950  December  15        0      18      44     177        1      29
-    ## 49  1951   January  15        0      24      47     207        1      22
-    ## 50  1951  February  15        0      24      47     207        1      22
-    ## 51  1951     March  15        0      24      47     207        1      22
-    ## 52  1951     April  15        0      24      47     207        1      22
-    ## 53  1951       May  15        0      24      47     207        1      22
-    ## 54  1951      June  15        0      24      47     207        1      22
-    ## 55  1951      July  15        0      24      47     207        1      22
-    ## 56  1951    August  15        0      24      47     207        1      22
-    ## 57  1951 September  15        0      24      47     207        1      22
-    ## 58  1951   October  15        0      25      47     207        1      22
-    ## 59  1951  November  15        0      25      47     207        1      22
-    ## 60  1951  December  15        0      25      47     207        1      22
-    ## 61  1952   January  15        0      24      50     207        1      22
-    ## 62  1952  February  15        0      24      50     207        1      22
-    ## 63  1952     March  15        0      24      50     207        1      22
-    ## 64  1952     April  15        0      24      50     207        1      22
-    ## 65  1952       May  15        0      24      50     207        1      22
-    ## 66  1952      June  15        0      24      50     207        1      22
-    ## 67  1952      July  15        0      24      50     207        1      22
-    ## 68  1952    August  15        0      24      50     207        1      22
-    ## 69  1952 September  15        0      24      50     207        1      22
-    ## 70  1952   October  15        0      24      50     207        1      22
-    ## 71  1952  November  15        0      24      50     207        1      22
-    ## 72  1952  December  15        0      24      50     207        1      22
-    ## 73  1953   January  15        1      29      50     222        0      17
-    ## 74  1953  February  15        1      29      50     222        0      17
-    ## 75  1953     March  15        1      29      50     222        0      17
-    ## 76  1953     April  15        1      29      50     222        0      17
-    ## 77  1953       May  15        1      29      50     222        0      17
-    ## 78  1953      June  15        1      29      50     222        0      17
-    ## 79  1953      July  15        1      29      50     222        0      17
-    ## 80  1953    August  15        1      29      50     222        0      17
-    ## 81  1953 September  15        1      29      50     222        0      17
-    ## 82  1953   October  15        1      30      50     222        0      18
-    ## 83  1953  November  15        1      30      50     222        0      18
-    ## 84  1953  December  15        1      30      50     222        0      18
-    ## 85  1954   January  15        1      29      55     222        0      18
-    ## 86  1954  February  15        1      29      55     222        0      18
-    ## 87  1954     March  15        1      29      55     222        0      18
-    ## 88  1954     April  15        1      29      55     222        0      18
-    ## 89  1954       May  15        1      29      55     222        0      18
-    ## 90  1954      June  15        1      29      55     222        0      18
-    ## 91  1954      July  15        1      29      55     222        0      18
-    ## 92  1954    August  15        1      29      55     222        0      18
-    ## 93  1954 September  15        1      29      55     222        0      18
-    ## 94  1954   October  15        1      29      55     222        0      18
-    ## 95  1954  November  15        1      29      55     222        0      19
-    ## 96  1954  December  15        1      29      55     222        0      19
-    ## 97  1955   January  15        1      21      47     204        0      26
-    ## 98  1955  February  15        1      21      47     204        0      26
-    ## 99  1955     March  15        1      21      47     204        0      26
-    ## 100 1955     April  15        1      21      47     204        0      26
-    ## 101 1955       May  15        1      21      47     204        0      26
-    ## 102 1955      June  15        1      21      47     204        0      26
-    ## 103 1955      July  15        1      21      47     204        0      26
-    ## 104 1955    August  15        1      21      47     204        0      26
-    ## 105 1955 September  15        1      21      47     204        0      26
-    ## 106 1955   October  15        1      21      47     204        0      26
-    ## 107 1955  November  15        1      21      47     204        0      26
-    ## 108 1955  December  15        1      21      47     204        0      26
-    ## 109 1956   January  15        1      21      49     204        0      26
-    ## 110 1956  February  15        1      21      49     204        0      26
-    ## 111 1956     March  15        1      21      49     204        0      26
-    ## 112 1956     April  15        1      21      49     204        0      26
-    ## 113 1956       May  15        1      21      49     204        0      26
-    ## 114 1956      June  15        1      21      49     204        0      26
-    ## 115 1956      July  15        1      21      49     204        0      26
-    ## 116 1956    August  15        1      21      49     204        0      26
-    ## 117 1956 September  15        1      21      49     204        0      26
-    ## 118 1956   October  15        1      21      49     204        0      26
-    ## 119 1956  November  15        1      21      49     204        0      26
-    ## 120 1956  December  15        1      21      49     204        0      26
-    ## 121 1957   January  15        1      19      47     203        0      28
-    ## 122 1957  February  15        1      19      47     203        0      28
-    ## 123 1957     March  15        1      19      47     203        0      28
-    ## 124 1957     April  15        1      19      47     203        0      28
-    ## 125 1957       May  15        1      19      47     203        0      28
-    ## 126 1957      June  15        1      19      47     203        0      28
-    ## 127 1957      July  15        1      19      47     203        0      28
-    ## 128 1957    August  15        1      19      47     203        0      28
-    ## 129 1957 September  15        1      20      47     203        0      28
-    ## 130 1957   October  15        1      20      47     203        0      28
-    ## 131 1957  November  15        1      20      47     203        0      28
-    ## 132 1957  December  15        1      20      47     203        0      28
-    ## 133 1958   January  15        1      20      47     203        0      28
-    ## 134 1958  February  15        1      20      47     203        0      28
-    ## 135 1958     March  15        1      20      47     203        0      28
-    ## 136 1958     April  15        1      20      47     203        0      28
-    ## 137 1958       May  15        1      20      47     203        0      28
-    ## 138 1958      June  15        1      20      47     203        0      28
-    ## 139 1958      July  15        1      20      47     203        0      28
-    ## 140 1958    August  15        1      20      47     203        0      28
-    ## 141 1958 September  15        1      20      47     203        0      28
-    ## 142 1958   October  15        1      20      47     203        0      28
-    ## 143 1958  November  15        1      20      47     203        0      28
-    ## 144 1958  December  15        1      20      47     203        0      28
-    ## 145 1959   January  15        1      15      35     159        0      35
-    ## 146 1959  February  15        1      15      35     159        0      35
-    ## 147 1959     March  15        1      15      35     159        0      35
-    ## 148 1959     April  15        1      15      35     159        0      35
-    ## 149 1959       May  15        1      15      35     159        0      35
-    ## 150 1959      June  15        1      15      35     159        0      35
-    ## 151 1959      July  15        1      15      35     159        0      35
-    ## 152 1959    August  15        1      15      35     159        0      35
-    ## 153 1959 September  15        1      15      35     159        0      35
-    ## 154 1959   October  15        1      15      35     159        0      35
-    ## 155 1959  November  15        1      15      35     159        0      35
-    ## 156 1959  December  15        1      15      35     159        0      35
-    ## 157 1960   January  15        1      16      35     159        0      34
-    ## 158 1960  February  15        1      16      35     159        0      34
-    ## 159 1960     March  15        1      16      35     159        0      34
-    ## 160 1960     April  15        1      16      35     159        0      34
-    ## 161 1960       May  15        1      16      35     159        0      34
-    ## 162 1960      June  15        1      16      35     159        0      34
-    ## 163 1960      July  15        1      16      35     159        0      34
-    ## 164 1960    August  15        1      16      35     159        0      34
-    ## 165 1960 September  15        1      17      35     159        0      34
-    ## 166 1960   October  15        1      17      35     159        0      34
-    ## 167 1960  November  15        1      17      35     159        0      34
-    ## 168 1960  December  15        1      17      35     159        0      34
-    ## 169 1961   January  15        0      16      37     176        1      34
-    ## 170 1961  February  15        0      16      37     176        1      34
-    ## 171 1961     March  15        0      16      37     176        1      34
-    ## 172 1961     April  15        0      16      37     176        1      34
-    ## 173 1961       May  15        0      16      37     176        1      34
-    ## 174 1961      June  15        0      16      37     176        1      34
-    ## 175 1961      July  15        0      16      37     176        1      34
-    ## 176 1961    August  15        0      16      37     176        1      34
-    ## 177 1961 September  15        0      16      37     176        1      34
-    ## 178 1961   October  15        0      16      37     176        1      34
-    ## 179 1961  November  15        0      16      37     176        1      34
-    ## 180 1961  December  15        0      16      37     176        1      34
-    ## 181 1962   January  15        0      16      42     176        1      34
-    ## 182 1962  February  15        0      16      42     176        1      34
-    ## 183 1962     March  15        0      16      42     176        1      34
-    ## 184 1962     April  15        0      16      42     176        1      34
-    ## 185 1962       May  15        0      16      42     176        1      34
-    ## 186 1962      June  15        0      16      42     176        1      34
-    ## 187 1962      July  15        0      16      42     176        1      34
-    ## 188 1962    August  15        0      16      42     176        1      34
-    ## 189 1962 September  15        0      16      42     176        1      34
-    ## 190 1962   October  15        0      16      42     176        1      34
-    ## 191 1962  November  15        0      16      42     176        1      34
-    ## 192 1962  December  15        0      16      42     176        1      34
-    ## 193 1963   January  15        0      17      34     182        1      33
-    ## 194 1963  February  15        0      17      34     182        1      33
-    ## 195 1963     March  15        0      16      34     182        1      34
-    ## 196 1963     April  15        0      16      34     182        1      34
-    ## 197 1963       May  15        0      16      34     182        1      34
-    ## 198 1963      June  15        0      16      34     182        1      34
-    ## 199 1963      July  15        0      16      34     182        1      34
-    ## 200 1963    August  15        0      16      34     182        1      34
-    ## 201 1963 September  15        0      16      34     182        1      34
-    ## 202 1963   October  15        0      16      34     182        1      34
-    ## 203 1963  November  15        0      16      34     182        1      34
-    ## 204 1963  December  15        0      16      34     182        1      34
-    ## 205 1964   January  15        0      16      34     182        1      34
-    ## 206 1964  February  15        0      16      34     182        1      34
-    ## 207 1964     March  15        0      16      34     182        1      34
-    ## 208 1964     April  15        0      16      34     182        1      34
-    ## 209 1964       May  15        0      16      34     182        1      34
-    ## 210 1964      June  15        0      16      34     182        1      34
-    ## 211 1964      July  15        0      16      34     182        1      34
-    ## 212 1964    August  15        0      16      34     182        1      34
-    ## 213 1964 September  15        0      16      34     182        1      34
-    ## 214 1964   October  15        0      16      34     182        1      34
-    ## 215 1964  November  15        0      16      34     182        1      34
-    ## 216 1964  December  15        0      16      34     182        1      34
-    ## 217 1965   January  15        0      17      32     141        1      33
-    ## 218 1965  February  15        0      17      32     141        1      33
-    ## 219 1965     March  15        0      17      32     141        1      33
-    ## 220 1965     April  15        0      17      32     141        1      33
-    ## 221 1965       May  15        0      17      32     141        1      33
-    ## 222 1965      June  15        0      17      32     141        1      33
-    ## 223 1965      July  15        0      17      32     141        1      33
-    ## 224 1965    August  15        0      17      32     141        1      33
-    ## 225 1965 September  15        0      17      32     141        1      33
-    ## 226 1965   October  15        0      17      32     141        1      33
-    ## 227 1965  November  15        0      17      32     141        1      33
-    ## 228 1965  December  15        0      17      32     141        1      33
-    ## 229 1966   January  15        0      18      33     141        1      33
-    ## 230 1966  February  15        0      18      33     141        1      33
-    ## 231 1966     March  15        0      18      33     141        1      33
-    ## 232 1966     April  15        0      18      33     141        1      33
-    ## 233 1966       May  15        0      18      33     141        1      33
-    ## 234 1966      June  15        0      18      33     141        1      33
-    ## 235 1966      July  15        0      18      33     141        1      33
-    ## 236 1966    August  15        0      18      33     141        1      33
-    ## 237 1966 September  15        0      18      33     141        1      33
-    ## 238 1966   October  15        0      18      33     141        1      33
-    ## 239 1966  November  15        0      18      33     141        1      33
-    ## 240 1966  December  15        0      18      33     141        1      33
-    ## 241 1967   January  15        0      25      36     188        1      27
-    ## 242 1967  February  15        0      25      36     188        1      27
-    ## 243 1967     March  15        0      25      36     188        1      27
-    ## 244 1967     April  15        0      25      36     188        1      27
-    ## 245 1967       May  15        0      25      36     188        1      27
-    ## 246 1967      June  15        0      25      36     188        1      27
-    ## 247 1967      July  15        0      25      36     188        1      27
-    ## 248 1967    August  15        0      25      36     188        1      27
-    ## 249 1967 September  15        0      25      36     188        1      27
-    ## 250 1967   October  15        0      25      36     188        1      27
-    ## 251 1967  November  15        0      25      36     188        1      27
-    ## 252 1967  December  15        0      25      36     188        1      27
-    ## 253 1968   January  15        0      26      39     188        1      26
-    ## 254 1968  February  15        0      26      39     188        1      26
-    ## 255 1968     March  15        0      26      39     188        1      26
-    ## 256 1968     April  15        0      26      39     188        1      26
-    ## 257 1968       May  15        0      26      39     188        1      26
-    ## 258 1968      June  15        0      26      39     188        1      26
-    ## 259 1968      July  15        0      26      39     188        1      26
-    ## 260 1968    August  15        0      26      39     188        1      26
-    ## 261 1968 September  15        0      26      39     188        1      26
-    ## 262 1968   October  15        0      26      39     188        1      26
-    ## 263 1968  November  15        0      26      39     188        1      26
-    ## 264 1968  December  15        0      26      39     188        1      26
-    ## 265 1969   January  15        1      31      43     199        0      22
-    ## 266 1969  February  15        1      31      43     199        0      22
-    ## 267 1969     March  15        1      31      43     199        0      22
-    ## 268 1969     April  15        1      31      43     199        0      22
-    ## 269 1969       May  15        1      31      43     199        0      22
-    ## 270 1969      June  15        1      31      43     199        0      22
-    ## 271 1969      July  15        1      31      43     199        0      22
-    ## 272 1969    August  15        1      31      43     199        0      22
-    ## 273 1969 September  15        1      31      43     199        0      22
-    ## 274 1969   October  15        1      31      43     199        0      22
-    ## 275 1969  November  15        1      31      43     199        0      22
-    ## 276 1969  December  15        1      31      43     199        0      22
-    ## 277 1970   January  15        1      32      43     199        0      20
-    ## 278 1970  February  15        1      32      43     199        0      20
-    ## 279 1970     March  15        1      32      43     199        0      20
-    ## 280 1970     April  15        1      32      43     199        0      20
-    ## 281 1970       May  15        1      32      43     199        0      20
-    ## 282 1970      June  15        1      32      43     199        0      20
-    ## 283 1970      July  15        1      32      43     199        0      20
-    ## 284 1970    August  15        1      32      43     199        0      20
-    ## 285 1970 September  15        1      32      43     199        0      20
-    ## 286 1970   October  15        1      32      43     199        0      20
-    ## 287 1970  November  15        1      32      43     199        0      20
-    ## 288 1970  December  15        1      32      43     199        0      20
-    ## 289 1971   January  15        1      21      44     185        0      30
-    ## 290 1971  February  15        1      21      44     185        0      30
-    ## 291 1971     March  15        1      21      44     185        0      30
-    ## 292 1971     April  15        1      21      44     185        0      30
-    ## 293 1971       May  15        1      21      44     185        0      30
-    ## 294 1971      June  15        1      21      44     185        0      30
-    ## 295 1971      July  15        1      21      44     185        0      30
-    ## 296 1971    August  15        1      21      44     185        0      30
-    ## 297 1971 September  15        1      21      44     185        0      30
-    ## 298 1971   October  15        1      21      44     185        0      30
-    ## 299 1971  November  15        1      21      44     185        0      30
-    ## 300 1971  December  15        1      21      44     185        0      30
-    ## 301 1972   January  15        1      20      44     185        0      31
-    ## 302 1972  February  15        1      20      44     185        0      31
-    ## 303 1972     March  15        1      20      44     185        0      31
-    ## 304 1972     April  15        1      20      44     185        0      31
-    ## 305 1972       May  15        1      20      44     185        0      31
-    ## 306 1972      June  15        1      20      44     185        0      31
-    ## 307 1972      July  15        1      20      44     185        0      31
-    ## 308 1972    August  15        1      20      44     185        0      31
-    ## 309 1972 September  15        1      20      44     185        0      31
-    ## 310 1972   October  15        1      20      44     185        0      31
-    ## 311 1972  November  15        1      20      44     185        0      31
-    ## 312 1972  December  15        1      20      44     185        0      31
-    ## 313 1973   January  15        1      19      42     195        0      32
-    ## 314 1973  February  15        1      19      42     195        0      32
-    ## 315 1973     March  15        1      19      42     195        0      32
-    ## 316 1973     April  15        1      19      42     195        0      32
-    ## 317 1973       May  15        1      19      42     195        0      32
-    ## 318 1973      June  15        1      19      42     195        0      32
-    ## 319 1973      July  15        1      19      42     195        0      32
-    ## 320 1973    August  15        1      20      42     195        0      32
-    ## 321 1973 September  15        1      20      42     195        0      32
-    ## 322 1973   October  15        1      20      42     195        0      32
-    ## 323 1973  November  15        1      20      42     195        0      32
-    ## 324 1973  December  15        1      20      42     195        0      32
-    ## 325 1974   January  15        1      18      45     195        0      34
-    ## 326 1974  February  15        1      18      45     195        0      34
-    ## 327 1974     March  15        1      18      45     195        0      34
-    ## 328 1974     April  15        1      18      45     195        0      34
-    ## 329 1974       May  15        1      18      45     195        0      34
-    ## 330 1974      June  15        1      18      45     195        0      34
-    ## 331 1974      July  15        1      18      45     195        0      34
-    ## 332 1974    August  15        2      18      45     195        0      34
-    ## 333 1974 September  15        2      18      45     195        0      34
-    ## 334 1974   October  15        2      18      45     195        0      34
-    ## 335 1974  November  15        2      18      45     195        0      34
-    ## 336 1974  December  15        2      18      45     195        0      34
-    ## 337 1975   January  15        1      13      38     148        0      37
-    ## 338 1975  February  15        1      13      38     148        0      37
-    ## 339 1975     March  15        1      13      38     148        0      37
-    ## 340 1975     April  15        1      13      38     148        0      37
-    ## 341 1975       May  15        1      13      38     148        0      37
-    ## 342 1975      June  15        1      13      38     148        0      37
-    ## 343 1975      July  15        1      13      38     148        0      37
-    ## 344 1975    August  15        1      13      38     148        0      37
-    ## 345 1975 September  15        1      13      38     148        0      37
-    ## 346 1975   October  15        1      13      38     148        0      37
-    ## 347 1975  November  15        1      13      38     148        0      37
-    ## 348 1975  December  15        1      13      38     148        0      37
-    ## 349 1976   January  15        1      13      39     148        0      37
-    ## 350 1976  February  15        1      13      39     148        0      37
-    ## 351 1976     March  15        1      13      39     148        0      37
-    ## 352 1976     April  15        1      13      39     148        0      37
-    ## 353 1976       May  15        1      13      39     148        0      37
-    ## 354 1976      June  15        1      13      39     148        0      37
-    ## 355 1976      July  15        1      13      39     148        0      37
-    ## 356 1976    August  15        1      13      39     148        0      37
-    ## 357 1976 September  15        1      13      39     148        0      37
-    ## 358 1976   October  15        1      13      39     148        0      37
-    ## 359 1976  November  15        1      13      39     148        0      37
-    ## 360 1976  December  15        1      13      39     148        0      37
-    ## 361 1977   January  15        0      12      38     147        1      38
-    ## 362 1977  February  15        0      12      38     147        1      38
-    ## 363 1977     March  15        0      12      38     147        1      38
-    ## 364 1977     April  15        0      12      38     147        1      38
-    ## 365 1977       May  15        0      12      38     147        1      38
-    ## 366 1977      June  15        0      12      38     147        1      39
-    ## 367 1977      July  15        0      12      38     147        1      40
-    ## 368 1977    August  15        0      12      38     147        1      40
-    ## 369 1977 September  15        0      12      38     147        1      40
-    ## 370 1977   October  15        0      12      38     147        1      40
-    ## 371 1977  November  15        0      12      38     147        1      41
-    ## 372 1977  December  15        0      12      38     147        1      41
-    ## 373 1978   January  15        0      12      41     147        1      38
-    ## 374 1978  February  15        0      12      41     147        1      38
-    ## 375 1978     March  15        0      12      41     147        1      38
-    ## 376 1978     April  15        0      12      41     147        1      38
-    ## 377 1978       May  15        0      12      41     147        1      38
-    ## 378 1978      June  15        0      12      41     147        1      38
-    ## 379 1978      July  15        0      12      41     147        1      38
-    ## 380 1978    August  15        0      12      41     147        1      39
-    ## 381 1978 September  15        0      12      41     147        1      39
-    ## 382 1978   October  15        0      12      41     147        1      39
-    ## 383 1978  November  15        0      12      41     147        1      39
-    ## 384 1978  December  15        0      12      41     147        1      39
-    ## 385 1979   January  15        0      19      41     160        1      32
-    ## 386 1979  February  15        0      19      41     160        1      32
-    ## 387 1979     March  15        0      19      41     160        1      32
-    ## 388 1979     April  15        0      19      41     160        1      32
-    ## 389 1979       May  15        0      19      41     160        1      32
-    ## 390 1979      June  15        0      19      41     160        1      32
-    ## 391 1979      July  15        0      19      41     160        1      32
-    ## 392 1979    August  15        0      19      41     160        1      32
-    ## 393 1979 September  15        0      19      41     160        1      32
-    ## 394 1979   October  15        0      19      41     160        1      32
-    ## 395 1979  November  15        0      19      41     160        1      32
-    ## 396 1979  December  15        0      19      41     160        1      32
-    ## 397 1980   January  15        0      19      42     160        1      32
-    ## 398 1980  February  15        0      19      42     160        1      32
-    ## 399 1980     March  15        0      20      42     160        1      31
-    ## 400 1980     April  15        0      20      42     160        1      31
-    ## 401 1980       May  15        0      20      42     160        1      31
-    ## 402 1980      June  15        0      20      42     160        1      31
-    ## 403 1980      July  15        0      20      42     160        1      31
-    ## 404 1980    August  15        0      20      42     160        1      31
-    ## 405 1980 September  15        0      20      42     160        1      31
-    ## 406 1980   October  15        0      20      42     160        1      31
-    ## 407 1980  November  15        0      20      42     160        1      31
-    ## 408 1980  December  15        0      20      42     160        1      31
-    ## 409 1981   January  15        1      24      53     196        0      27
-    ## 410 1981  February  15        1      24      53     196        0      27
-    ## 411 1981     March  15        1      24      53     196        0      27
-    ## 412 1981     April  15        1      24      53     196        0      27
-    ## 413 1981       May  15        1      24      53     196        0      27
-    ## 414 1981      June  15        1      24      53     196        0      27
-    ## 415 1981      July  15        1      24      53     196        0      27
-    ## 416 1981    August  15        1      24      53     196        0      27
-    ## 417 1981 September  15        1      24      53     196        0      27
-    ## 418 1981   October  15        1      24      53     196        0      27
-    ## 419 1981  November  15        1      24      53     196        0      27
-    ## 420 1981  December  15        1      24      53     196        0      27
-    ## 421 1982   January  15        1      24      54     196        0      27
-    ## 422 1982  February  15        1      24      54     196        0      27
-    ## 423 1982     March  15        1      24      54     196        0      27
-    ## 424 1982     April  15        1      24      54     196        0      27
-    ## 425 1982       May  15        1      24      54     196        0      27
-    ## 426 1982      June  15        1      24      54     196        0      27
-    ## 427 1982      July  15        1      24      54     196        0      27
-    ## 428 1982    August  15        1      24      54     196        0      27
-    ## 429 1982 September  15        1      24      54     196        0      27
-    ## 430 1982   October  15        1      24      54     196        0      27
-    ## 431 1982  November  15        1      24      54     196        0      27
-    ## 432 1982  December  15        1      24      54     196        0      27
-    ## 433 1983   January  15        1      16      55     168        0      34
-    ## 434 1983  February  15        1      16      55     168        0      34
-    ## 435 1983     March  15        1      16      55     168        0      34
-    ## 436 1983     April  15        1      16      55     168        0      34
-    ## 437 1983       May  15        1      16      55     168        0      34
-    ## 438 1983      June  15        1      16      55     168        0      34
-    ## 439 1983      July  15        1      16      55     168        0      34
-    ## 440 1983    August  15        1      16      55     168        0      34
-    ## 441 1983 September  15        1      16      55     168        0      34
-    ## 442 1983   October  15        1      16      55     168        0      34
-    ## 443 1983  November  15        1      16      55     168        0      34
-    ## 444 1983  December  15        1      16      55     168        0      34
-    ## 445 1984   January  15        1      16      55     168        0      34
-    ## 446 1984  February  15        1      16      55     168        0      34
-    ## 447 1984     March  15        1      15      55     168        0      34
-    ## 448 1984     April  15        1      15      55     168        0      34
-    ## 449 1984       May  15        1      15      55     168        0      35
-    ## 450 1984      June  15        1      15      55     168        0      35
-    ## 451 1984      July  15        1      15      55     168        0      35
-    ## 452 1984    August  15        1      15      55     168        0      35
-    ## 453 1984 September  15        1      15      55     168        0      35
-    ## 454 1984   October  15        1      15      55     168        0      35
-    ## 455 1984  November  15        1      15      55     168        0      35
-    ## 456 1984  December  15        1      15      55     168        0      35
-    ## 457 1985   January  15        1      16      53     183        0      34
-    ## 458 1985  February  15        1      16      53     183        0      34
-    ## 459 1985     March  15        1      16      53     183        0      34
-    ## 460 1985     April  15        1      16      53     183        0      34
-    ## 461 1985       May  15        1      16      53     183        0      34
-    ## 462 1985      June  15        1      16      53     183        0      34
-    ## 463 1985      July  15        1      16      53     183        0      34
-    ## 464 1985    August  15        1      16      53     183        0      34
-    ## 465 1985 September  15        1      16      53     183        0      34
-    ## 466 1985   October  15        1      16      53     183        0      34
-    ## 467 1985  November  15        1      16      53     183        0      34
-    ## 468 1985  December  15        1      16      53     183        0      34
-    ## 469 1986   January  15        1      16      53     183        0      34
-    ## 470 1986  February  15        1      16      53     183        0      34
-    ## 471 1986     March  15        1      16      53     183        0      34
-    ## 472 1986     April  15        1      16      53     183        0      34
-    ## 473 1986       May  15        1      16      53     183        0      34
-    ## 474 1986      June  15        1      16      53     183        0      34
-    ## 475 1986      July  15        1      16      54     183        0      34
-    ## 476 1986    August  15        1      16      54     183        0      34
-    ## 477 1986 September  15        1      16      54     183        0      34
-    ## 478 1986   October  15        1      16      54     183        0      34
-    ## 479 1986  November  15        1      16      54     183        0      34
-    ## 480 1986  December  15        1      16      54     183        0      34
-    ## 481 1987   January  15        1      24      46     179        0      27
-    ## 482 1987  February  15        1      24      46     179        0      27
-    ## 483 1987     March  15        1      24      46     179        0      27
-    ## 484 1987     April  15        1      24      46     179        0      27
-    ## 485 1987       May  15        1      24      46     179        0      27
-    ## 486 1987      June  15        1      24      46     179        0      27
-    ## 487 1987      July  15        1      24      46     179        0      27
-    ## 488 1987    August  15        1      24      46     179        0      27
-    ## 489 1987 September  15        1      24      46     179        0      27
-    ## 490 1987   October  15        1      24      46     179        0      27
-    ## 491 1987  November  15        1      24      46     179        0      27
-    ## 492 1987  December  15        1      24      46     179        0      27
-    ## 493 1988   January  15        1      24      46     179        0      28
-    ## 494 1988  February  15        1      24      46     179        0      28
-    ## 495 1988     March  15        1      25      46     179        0      28
-    ## 496 1988     April  15        1      24      46     179        0      28
-    ## 497 1988       May  15        1      24      46     179        0      28
-    ## 498 1988      June  15        1      24      46     179        0      28
-    ## 499 1988      July  15        1      24      46     178        0      28
-    ## 500 1988    August  15        1      24      46     178        0      28
-    ## 501 1988 September  15        1      24      46     178        0      28
-    ## 502 1988   October  15        1      24      46     178        0      28
-    ## 503 1988  November  15        1      24      46     179        0      28
-    ## 504 1988  December  15        1      24      46     179        0      28
-    ## 505 1989   January  15        1      23      46     178        0      29
-    ## 506 1989  February  15        1      23      46     178        0      29
-    ## 507 1989     March  15        1      23      46     178        0      29
-    ## 508 1989     April  15        1      23      46     178        0      29
-    ## 509 1989       May  15        1      23      46     178        0      29
-    ## 510 1989      June  15        1      23      46     178        0      29
-    ## 511 1989      July  15        1      23      46     178        0      29
-    ## 512 1989    August  15        1      23      46     178        0      29
-    ## 513 1989 September  15        1      23      46     178        0      29
-    ## 514 1989   October  15        1      23      46     178        0      29
-    ## 515 1989  November  15        1      23      46     178        0      29
-    ## 516 1989  December  15        1      23      46     178        0      29
-    ## 517 1990   January  15        1      22      46     176        0      30
-    ## 518 1990  February  15        1      22      46     176        0      30
-    ## 519 1990     March  15        1      22      46     176        0      30
-    ## 520 1990     April  15        1      22      46     176        0      30
-    ## 521 1990       May  15        1      22      46     176        0      30
-    ## 522 1990      June  15        1      22      46     176        0      30
-    ## 523 1990      July  15        1      22      46     176        0      30
-    ## 524 1990    August  15        1      22      46     176        0      30
-    ## 525 1990 September  15        1      22      46     176        0      30
-    ## 526 1990   October  15        1      22      46     176        0      30
-    ## 527 1990  November  15        1      22      46     176        0      30
-    ## 528 1990  December  15        1      22      46     176        0      30
-    ## 529 1991   January  15        1      20      45     168        0      29
-    ## 530 1991  February  15        1      20      45     168        0      29
-    ## 531 1991     March  15        1      21      45     166        0      28
-    ## 532 1991     April  15        1      21      45     166        0      28
-    ## 533 1991       May  15        1      21      45     166        0      28
-    ## 534 1991      June  15        1      21      45     166        0      28
-    ## 535 1991      July  15        1      21      45     166        0      28
-    ## 536 1991    August  15        1      21      45     166        0      29
-    ## 537 1991 September  15        1      21      45     166        0      29
-    ## 538 1991   October  15        1      21      45     166        0      29
-    ## 539 1991  November  15        1      21      45     167        0      29
-    ## 540 1991  December  15        1      21      45     167        0      29
-    ## 541 1992   January  15        1      20      43     166        0      27
-    ## 542 1992  February  15        1      20      43     166        0      27
-    ## 543 1992     March  15        1      20      43     166        0      28
-    ## 544 1992     April  15        1      20      43     166        0      28
-    ## 545 1992       May  15        1      20      43     166        0      28
-    ## 546 1992      June  15        1      20      43     166        0      28
-    ## 547 1992      July  15        1      20      43     166        0      28
-    ## 548 1992    August  15        1      20      43     166        0      28
-    ## 549 1992 September  15        1      20      43     166        0      28
-    ## 550 1992   October  15        1      20      43     166        0      28
-    ## 551 1992  November  15        1      20      43     166        0      28
-    ## 552 1992  December  15        1      20      43     166        0      28
-    ## 553 1993   January  15        0      18      46     175        1      30
-    ## 554 1993  February  15        0      18      46     175        1      30
-    ## 555 1993     March  15        0      18      46     175        1      30
-    ## 556 1993     April  15        0      18      46     175        1      30
-    ## 557 1993       May  15        0      17      46     177        1      31
-    ## 558 1993      June  15        0      17      46     178        1      31
-    ## 559 1993      July  15        0      17      46     178        1      31
-    ## 560 1993    August  15        0      17      46     178        1      31
-    ## 561 1993 September  15        0      17      46     178        1      31
-    ## 562 1993   October  15        0      17      46     178        1      31
-    ## 563 1993  November  15        0      17      46     178        1      31
-    ## 564 1993  December  15        0      17      46     178        1      31
-    ## 565 1994   January  15        0      19      48     178        1      28
-    ## 566 1994  February  15        0      19      48     178        1      28
-    ## 567 1994     March  15        0      19      48     178        1      28
-    ## 568 1994     April  15        0      19      48     178        1      28
-    ## 569 1994       May  15        0      19      48     178        1      28
-    ## 570 1994      June  15        0      19      48     178        1      28
-    ## 571 1994      July  15        0      19      48     178        1      28
-    ## 572 1994    August  15        0      19      48     178        1      28
-    ## 573 1994 September  15        0      19      48     178        1      28
-    ## 574 1994   October  15        0      19      48     178        1      28
-    ## 575 1994  November  15        0      19      48     178        1      28
-    ## 576 1994  December  15        0      19      48     178        1      28
-    ## 577 1995   January  15        0      30      54     235        1      20
-    ## 578 1995  February  15        0      30      54     235        1      20
-    ## 579 1995     March  15        0      30      54     235        1      20
-    ## 580 1995     April  15        0      30      54     235        1      20
-    ## 581 1995       May  15        0      30      54     235        1      20
-    ## 582 1995      June  15        0      30      54     235        1      20
-    ## 583 1995      July  15        0      30      54     235        1      20
-    ## 584 1995    August  15        0      30      54     235        1      20
-    ## 585 1995 September  15        0      30      54     235        1      20
-    ## 586 1995   October  15        0      30      54     235        1      20
-    ## 587 1995  November  15        0      30      54     235        1      20
-    ## 588 1995  December  15        0      30      54     235        1      20
-    ## 589 1996   January  15        0      31      54     236        1      19
-    ## 590 1996  February  15        0      31      54     236        1      19
-    ## 591 1996     March  15        0      31      54     236        1      19
-    ## 592 1996     April  15        0      31      54     236        1      19
-    ## 593 1996       May  15        0      31      54     236        1      19
-    ## 594 1996      June  15        0      31      54     236        1      19
-    ## 595 1996      July  15        0      32      54     235        1      19
-    ## 596 1996    August  15        0      32      54     235        1      19
-    ## 597 1996 September  15        0      32      54     235        1      19
-    ## 598 1996   October  15        0      32      54     235        1      19
-    ## 599 1996  November  15        0      32      55     235        1      19
-    ## 600 1996  December  15        0      32      55     235        1      19
-    ## 601 1997   January  15        0      32      55     227        1      18
-    ## 602 1997  February  15        0      32      55     227        1      18
-    ## 603 1997     March  15        0      32      55     227        1      18
-    ## 604 1997     April  15        0      32      55     227        1      18
-    ## 605 1997       May  15        0      32      55     228        1      18
-    ## 606 1997      June  15        0      32      55     228        1      18
-    ## 607 1997      July  15        0      32      55     228        1      18
-    ## 608 1997    August  15        0      33      55     228        1      18
-    ## 609 1997 September  15        0      34      55     228        1      18
-    ## 610 1997   October  15        0      34      55     228        1      18
-    ## 611 1997  November  15        0      34      55     229        1      18
-    ## 612 1997  December  15        0      34      55     229        1      18
-    ## 613 1998   January  15        0      32      55     227        1      18
-    ## 614 1998  February  15        0      32      55     227        1      18
-    ## 615 1998     March  15        0      32      55     227        1      18
-    ## 616 1998     April  15        0      32      55     227        1      18
-    ## 617 1998       May  15        0      32      55     227        1      18
-    ## 618 1998      June  15        0      32      55     227        1      18
-    ## 619 1998      July  15        0      32      55     228        1      18
-    ## 620 1998    August  15        0      32      55     228        1      18
-    ## 621 1998 September  15        0      32      55     228        1      18
-    ## 622 1998   October  15        0      32      55     228        1      18
-    ## 623 1998  November  15        0      32      55     228        1      18
-    ## 624 1998  December  15        0      32      55     228        1      18
-    ## 625 1999   January  15        0      31      55     223        1      17
-    ## 626 1999  February  15        0      31      55     223        1      17
-    ## 627 1999     March  15        0      31      55     222        1      17
-    ## 628 1999     April  15        0      31      55     222        1      17
-    ## 629 1999       May  15        0      31      55     222        1      17
-    ## 630 1999      June  15        0      31      55     223        1      17
-    ## 631 1999      July  15        0      31      55     223        1      17
-    ## 632 1999    August  15        0      31      55     223        1      17
-    ## 633 1999 September  15        0      31      55     223        1      17
-    ## 634 1999   October  15        0      31      55     223        1      17
-    ## 635 1999  November  15        0      31      56     223        1      17
-    ## 636 1999  December  15        0      31      56     223        1      17
-    ## 637 2000   January  15        0      30      55     223        1      18
-    ## 638 2000  February  15        0      30      55     223        1      18
-    ## 639 2000     March  15        0      30      55     223        1      18
-    ## 640 2000     April  15        0      30      55     223        1      18
-    ## 641 2000       May  15        0      30      55     223        1      18
-    ## 642 2000      June  15        0      30      55     223        1      18
-    ## 643 2000      July  15        0      30      55     223        1      18
-    ## 644 2000    August  15        0      30      55     223        1      18
-    ## 645 2000 September  15        0      30      55     223        1      18
-    ## 646 2000   October  15        0      30      55     223        1      18
-    ## 647 2000  November  15        0      30      55     223        1      19
-    ## 648 2000  December  15        0      30      55     223        1      19
-    ## 649 2001   January  15        1      29      49     220        0      19
-    ## 650 2001  February  15        1      29      49     220        0      19
-    ## 651 2001     March  15        1      29      49     220        0      19
-    ## 652 2001     April  15        1      29      49     220        0      19
-    ## 653 2001       May  15        1      29      49     220        0      19
-    ## 654 2001      June  15        1      29      49     221        0      19
-    ## 655 2001      July  15        1      29      49     222        0      19
-    ## 656 2001    August  15        1      29      49     222        0      19
-    ## 657 2001 September  15        1      29      49     222        0      19
-    ## 658 2001   October  15        1      30      49     222        0      19
-    ## 659 2001  November  15        1      30      49     223        0      19
-    ## 660 2001  December  15        1      30      49     223        0      19
-    ## 661 2002   January  15        1      27      50     221        0      21
-    ## 662 2002  February  15        1      27      50     221        0      21
-    ## 663 2002     March  15        1      27      50     222        0      21
-    ## 664 2002     April  15        1      27      50     222        0      21
-    ## 665 2002       May  15        1      27      50     222        0      21
-    ## 666 2002      June  15        1      27      50     222        0      21
-    ## 667 2002      July  15        1      27      50     222        0      21
-    ## 668 2002    August  15        1      27      50     222        0      21
-    ## 669 2002 September  15        1      27      50     222        0      21
-    ## 670 2002   October  15        1      27      50     222        0      21
-    ## 671 2002  November  15        1      27      50     222        0      21
-    ## 672 2002  December  15        1      27      50     222        0      21
-    ## 673 2003   January  15        1      26      51     231        0      24
-    ## 674 2003  February  15        1      26      51     231        0      24
-    ## 675 2003     March  15        1      26      51     231        0      24
-    ## 676 2003     April  15        1      26      51     231        0      24
-    ## 677 2003       May  15        1      26      51     231        0      24
-    ## 678 2003      June  15        1      26      51     231        0      24
-    ## 679 2003      July  15        1      26      51     231        0      24
-    ## 680 2003    August  15        1      26      51     231        0      24
-    ## 681 2003 September  15        1      26      51     231        0      25
-    ## 682 2003   October  15        1      26      51     231        0      25
-    ## 683 2003  November  15        1      27      51     231        0      25
-    ## 684 2003  December  15        1      27      51     231        0      25
-    ## 685 2004   January  15        1      28      51     229        0      22
-    ## 686 2004  February  15        1      28      51     229        0      22
-    ## 687 2004     March  15        1      28      51     229        0      22
-    ## 688 2004     April  15        1      28      51     229        0      22
-    ## 689 2004       May  15        1      28      51     229        0      22
-    ## 690 2004      June  15        1      28      51     229        0      22
-    ## 691 2004      July  15        1      29      51     229        0      22
-    ## 692 2004    August  15        1      29      51     229        0      22
-    ## 693 2004 September  15        1      29      51     229        0      22
-    ## 694 2004   October  15        1      29      51     229        0      22
-    ## 695 2004  November  15        1      29      51     229        0      23
-    ## 696 2004  December  15        1      29      51     229        0      23
-    ## 697 2005   January  15        1      28      54     232        0      22
-    ## 698 2005  February  15        1      28      54     232        0      22
-    ## 699 2005     March  15        1      28      54     232        0      22
-    ## 700 2005     April  15        1      28      54     232        0      22
-    ## 701 2005       May  15        1      28      54     231        0      22
-    ## 702 2005      June  15        1      28      54     231        0      22
-    ## 703 2005      July  15        1      28      54     231        0      22
-    ## 704 2005    August  15        1      28      54     231        0      22
-    ## 705 2005 September  15        1      28      54     232        0      22
-    ## 706 2005   October  15        1      28      54     232        0      22
-    ## 707 2005  November  15        1      28      54     232        0      22
-    ## 708 2005  December  15        1      28      54     232        0      22
-    ## 709 2006   January  15        1      28      54     231        0      22
-    ## 710 2006  February  15        1      28      54     231        0      22
-    ## 711 2006     March  15        1      28      54     231        0      22
-    ## 712 2006     April  15        1      28      54     231        0      22
-    ## 713 2006       May  15        1      28      54     231        0      22
-    ## 714 2006      June  15        1      28      54     231        0      22
-    ## 715 2006      July  15        1      28      54     231        0      22
-    ## 716 2006    August  15        1      28      54     231        0      22
-    ## 717 2006 September  15        1      28      54     231        0      22
-    ## 718 2006   October  15        1      28      54     231        0      22
-    ## 719 2006  November  15        1      28      54     232        0      22
-    ## 720 2006  December  15        1      28      54     232        0      22
-    ## 721 2007   January  15        1      22      48     201        0      28
-    ## 722 2007  February  15        1      22      48     201        0      28
-    ## 723 2007     March  15        1      22      48     201        0      28
-    ## 724 2007     April  15        1      22      48     201        0      28
-    ## 725 2007       May  15        1      22      48     201        0      28
-    ## 726 2007      June  15        1      22      47     201        0      28
-    ## 727 2007      July  15        1      22      48     201        0      28
-    ## 728 2007    August  15        1      22      48     202        0      28
-    ## 729 2007 September  15        1      22      48     202        0      28
-    ## 730 2007   October  15        1      22      48     202        0      28
-    ## 731 2007  November  15        1      22      48     202        0      28
-    ## 732 2007  December  15        1      22      48     202        0      28
-    ## 733 2008   January  15        1      22      48     198        0      28
-    ## 734 2008  February  15        1      22      48     198        0      28
-    ## 735 2008     March  15        1      22      48     198        0      28
-    ## 736 2008     April  15        1      22      48     198        0      28
-    ## 737 2008       May  15        1      22      48     199        0      28
-    ## 738 2008      June  15        1      22      48     199        0      28
-    ## 739 2008      July  15        1      22      48     199        0      28
-    ## 740 2008    August  15        1      22      48     199        0      28
-    ## 741 2008 September  15        1      22      48     199        0      28
-    ## 742 2008   October  15        1      22      48     199        0      28
-    ## 743 2008  November  15        1      22      48     199        0      28
-    ## 744 2008  December  15        1      22      48     199        0      28
-    ## 745 2009   January  15        0      22      40     179        1      28
-    ## 746 2009  February  15        0      22      40     179        1      28
-    ## 747 2009     March  15        0      22      40     179        1      28
-    ## 748 2009     April  15        0      22      40     179        1      28
-    ## 749 2009       May  15        0      22      40     179        1      28
-    ## 750 2009      June  15        0      22      40     179        1      28
-    ## 751 2009      July  15        0      22      40     179        1      28
-    ## 752 2009    August  15        0      24      40     179        1      28
-    ## 753 2009 September  15        0      24      41     179        1      28
-    ## 754 2009   October  15        0      24      41     179        1      28
-    ## 755 2009  November  15        0      24      41     179        1      28
-    ## 756 2009  December  15        0      24      41     179        1      28
-    ## 757 2010   January  15        0      24      41     178        1      26
-    ## 758 2010  February  15        0      24      41     178        1      26
-    ## 759 2010     March  15        0      24      41     178        1      26
-    ## 760 2010     April  15        0      24      41     177        1      26
-    ## 761 2010       May  15        0      24      41     177        1      26
-    ## 762 2010      June  15        0      24      41     178        1      26
-    ## 763 2010      July  15        0      24      41     178        1      26
-    ## 764 2010    August  15        0      24      41     178        1      26
-    ## 765 2010 September  15        0      24      41     178        1      26
-    ## 766 2010   October  15        0      24      41     178        1      26
-    ## 767 2010  November  15        0      24      41     178        1      27
-    ## 768 2010  December  15        0      24      41     178        1      27
-    ## 769 2011   January  15        0      29      47     241        1      21
-    ## 770 2011  February  15        0      29      47     241        1      21
-    ## 771 2011     March  15        0      29      47     241        1      21
-    ## 772 2011     April  15        0      29      47     241        1      21
-    ## 773 2011       May  15        0      29      47     240        1      21
-    ## 774 2011      June  15        0      29      47     240        1      21
-    ## 775 2011      July  15        0      29      47     240        1      21
-    ## 776 2011    August  15        0      29      47     240        1      21
-    ## 777 2011 September  15        0      29      47     242        1      21
-    ## 778 2011   October  15        0      29      47     242        1      21
-    ## 779 2011  November  15        0      29      47     242        1      21
-    ## 780 2011  December  15        0      29      47     242        1      21
-    ## 781 2012   January  15        0      29      47     242        1      21
-    ## 782 2012  February  15        0      29      47     242        1      21
-    ## 783 2012     March  15        0      29      47     242        1      21
-    ## 784 2012     April  15        0      29      47     242        1      21
-    ## 785 2012       May  15        0      29      47     242        1      21
-    ## 786 2012      June  15        0      29      47     242        1      21
-    ## 787 2012      July  15        0      29      47     242        1      21
-    ## 788 2012    August  15        0      29      47     242        1      21
-    ## 789 2012 September  15        0      29      47     242        1      21
-    ## 790 2012   October  15        0      29      47     242        1      21
-    ## 791 2012  November  15        0      29      47     243        1      21
-    ## 792 2012  December  15        0      29      47     243        1      21
-    ## 793 2013   January  15        0      30      45     232        1      20
-    ## 794 2013  February  15        0      30      45     232        1      20
-    ## 795 2013     March  15        0      30      45     232        1      20
-    ## 796 2013     April  15        0      30      45     232        1      20
-    ## 797 2013       May  15        0      30      45     233        1      20
-    ## 798 2013      June  15        0      30      46     234        1      20
-    ## 799 2013      July  15        0      30      46     234        1      20
-    ## 800 2013    August  15        0      30      46     234        1      20
-    ## 801 2013 September  15        0      30      46     234        1      20
-    ## 802 2013   October  15        0      30      46     234        1      20
-    ## 803 2013  November  15        0      30      46     234        1      20
-    ## 804 2013  December  15        0      30      46     234        1      20
-    ## 805 2014   January  15        0      29      45     232        1      21
-    ## 806 2014  February  15        0      29      45     232        1      21
-    ## 807 2014     March  15        0      29      45     233        1      21
-    ## 808 2014     April  15        0      29      45     233        1      21
-    ## 809 2014       May  15        0      29      45     233        1      21
-    ## 810 2014      June  15        0      29      45     233        1      21
-    ## 811 2014      July  15        0      29      45     234        1      21
-    ## 812 2014    August  15        0      29      45     234        1      21
-    ## 813 2014 September  15        0      29      45     234        1      21
-    ## 814 2014   October  15        0      29      45     234        1      21
-    ## 815 2014  November  15        0      29      45     235        1      21
-    ## 816 2014  December  15        0      29      45     235        1      21
-    ## 817 2015   January  15        0      31      54     245        1      18
-    ## 818 2015  February  15        0      31      54     245        1      18
-    ## 819 2015     March  15        0      31      54     245        1      18
-    ## 820 2015     April  15        0      31      54     244        1      18
-    ## 821 2015       May  15        0      31      54     245        1      18
-    ## 822 2015      June  15        0      31      54     246        1      18
-    ##     sen_dem rep_dem
-    ## 1        45     198
-    ## 2        45     198
-    ## 3        45     198
-    ## 4        45     198
-    ## 5        45     198
-    ## 6        45     198
-    ## 7        45     198
-    ## 8        45     198
-    ## 9        45     198
-    ## 10       45     198
-    ## 11       45     198
-    ## 12       45     198
-    ## 13       48     198
-    ## 14       48     198
-    ## 15       48     198
-    ## 16       48     198
-    ## 17       48     198
-    ## 18       48     198
-    ## 19       48     198
-    ## 20       48     198
-    ## 21       48     198
-    ## 22       48     198
-    ## 23       48     198
-    ## 24       48     198
-    ## 25       58     269
-    ## 26       58     269
-    ## 27       58     269
-    ## 28       58     269
-    ## 29       58     269
-    ## 30       58     269
-    ## 31       58     269
-    ## 32       58     269
-    ## 33       58     269
-    ## 34       58     269
-    ## 35       58     269
-    ## 36       58     269
-    ## 37       57     269
-    ## 38       57     269
-    ## 39       57     269
-    ## 40       57     269
-    ## 41       57     269
-    ## 42       57     269
-    ## 43       57     269
-    ## 44       57     269
-    ## 45       57     269
-    ## 46       57     269
-    ## 47       57     269
-    ## 48       57     269
-    ## 49       51     242
-    ## 50       51     242
-    ## 51       51     242
-    ## 52       51     242
-    ## 53       51     242
-    ## 54       51     242
-    ## 55       51     242
-    ## 56       51     242
-    ## 57       51     242
-    ## 58       51     242
-    ## 59       51     242
-    ## 60       51     242
-    ## 61       50     242
-    ## 62       50     242
-    ## 63       50     242
-    ## 64       50     242
-    ## 65       50     242
-    ## 66       50     242
-    ## 67       50     242
-    ## 68       50     242
-    ## 69       50     242
-    ## 70       50     242
-    ## 71       50     242
-    ## 72       50     242
-    ## 73       49     220
-    ## 74       49     220
-    ## 75       49     220
-    ## 76       49     220
-    ## 77       49     220
-    ## 78       49     220
-    ## 79       49     220
-    ## 80       49     220
-    ## 81       49     220
-    ## 82       49     220
-    ## 83       49     220
-    ## 84       49     220
-    ## 85       53     220
-    ## 86       53     220
-    ## 87       53     220
-    ## 88       53     220
-    ## 89       53     220
-    ## 90       53     220
-    ## 91       53     220
-    ## 92       53     220
-    ## 93       53     220
-    ## 94       53     220
-    ## 95       53     220
-    ## 96       53     220
-    ## 97       48     237
-    ## 98       48     237
-    ## 99       48     237
-    ## 100      48     237
-    ## 101      48     237
-    ## 102      48     237
-    ## 103      48     237
-    ## 104      48     237
-    ## 105      48     237
-    ## 106      48     237
-    ## 107      48     237
-    ## 108      48     237
-    ## 109      51     237
-    ## 110      51     237
-    ## 111      51     237
-    ## 112      50     237
-    ## 113      50     237
-    ## 114      50     237
-    ## 115      50     237
-    ## 116      50     237
-    ## 117      50     237
-    ## 118      50     237
-    ## 119      51     237
-    ## 120      51     237
-    ## 121      52     242
-    ## 122      52     242
-    ## 123      52     242
-    ## 124      52     242
-    ## 125      52     242
-    ## 126      52     242
-    ## 127      52     242
-    ## 128      52     242
-    ## 129      52     242
-    ## 130      52     242
-    ## 131      52     242
-    ## 132      52     242
-    ## 133      52     242
-    ## 134      52     242
-    ## 135      52     242
-    ## 136      52     242
-    ## 137      52     242
-    ## 138      52     242
-    ## 139      52     242
-    ## 140      52     242
-    ## 141      52     242
-    ## 142      52     242
-    ## 143      52     242
-    ## 144      52     242
-    ## 145      65     289
-    ## 146      65     289
-    ## 147      65     289
-    ## 148      65     289
-    ## 149      65     289
-    ## 150      65     289
-    ## 151      65     289
-    ## 152      65     289
-    ## 153      65     289
-    ## 154      65     289
-    ## 155      65     289
-    ## 156      65     289
-    ## 157      70     289
-    ## 158      70     289
-    ## 159      70     289
-    ## 160      70     289
-    ## 161      70     289
-    ## 162      70     289
-    ## 163      70     289
-    ## 164      70     289
-    ## 165      70     289
-    ## 166      70     289
-    ## 167      70     289
-    ## 168      70     289
-    ## 169      64     273
-    ## 170      64     273
-    ## 171      64     273
-    ## 172      64     273
-    ## 173      64     273
-    ## 174      64     273
-    ## 175      64     273
-    ## 176      64     273
-    ## 177      64     273
-    ## 178      64     273
-    ## 179      64     273
-    ## 180      64     273
-    ## 181      65     273
-    ## 182      65     273
-    ## 183      65     273
-    ## 184      65     273
-    ## 185      65     273
-    ## 186      65     273
-    ## 187      65     273
-    ## 188      65     273
-    ## 189      65     273
-    ## 190      65     273
-    ## 191      65     273
-    ## 192      65     273
-    ## 193      68     262
-    ## 194      68     262
-    ## 195      68     262
-    ## 196      68     262
-    ## 197      68     262
-    ## 198      68     262
-    ## 199      68     262
-    ## 200      68     262
-    ## 201      68     262
-    ## 202      68     262
-    ## 203      68     262
-    ## 204      68     262
-    ## 205      71     262
-    ## 206      71     262
-    ## 207      71     262
-    ## 208      71     262
-    ## 209      71     262
-    ## 210      71     262
-    ## 211      71     262
-    ## 212      71     262
-    ## 213      71     262
-    ## 214      71     262
-    ## 215      71     262
-    ## 216      71     262
-    ## 217      69     301
-    ## 218      69     301
-    ## 219      69     301
-    ## 220      69     301
-    ## 221      69     301
-    ## 222      69     301
-    ## 223      69     301
-    ## 224      69     301
-    ## 225      69     301
-    ## 226      69     301
-    ## 227      69     301
-    ## 228      69     301
-    ## 229      70     301
-    ## 230      70     301
-    ## 231      70     301
-    ## 232      70     301
-    ## 233      70     301
-    ## 234      70     301
-    ## 235      70     301
-    ## 236      70     301
-    ## 237      70     301
-    ## 238      70     301
-    ## 239      70     301
-    ## 240      70     301
-    ## 241      64     251
-    ## 242      64     251
-    ## 243      64     251
-    ## 244      64     251
-    ## 245      64     251
-    ## 246      64     251
-    ## 247      64     251
-    ## 248      64     251
-    ## 249      64     251
-    ## 250      64     251
-    ## 251      64     251
-    ## 252      64     251
-    ## 253      65     251
-    ## 254      65     251
-    ## 255      65     251
-    ## 256      65     251
-    ## 257      65     251
-    ## 258      65     251
-    ## 259      65     251
-    ## 260      65     251
-    ## 261      65     251
-    ## 262      65     251
-    ## 263      65     251
-    ## 264      65     251
-    ## 265      57     250
-    ## 266      57     250
-    ## 267      57     250
-    ## 268      57     250
-    ## 269      57     250
-    ## 270      57     250
-    ## 271      57     250
-    ## 272      57     250
-    ## 273      57     250
-    ## 274      57     250
-    ## 275      57     250
-    ## 276      57     250
-    ## 277      58     250
-    ## 278      58     250
-    ## 279      58     250
-    ## 280      58     250
-    ## 281      58     250
-    ## 282      58     250
-    ## 283      58     250
-    ## 284      58     250
-    ## 285      58     250
-    ## 286      58     250
-    ## 287      58     250
-    ## 288      58     250
-    ## 289      55     259
-    ## 290      55     259
-    ## 291      55     259
-    ## 292      55     259
-    ## 293      55     259
-    ## 294      55     259
-    ## 295      55     259
-    ## 296      55     259
-    ## 297      55     259
-    ## 298      55     259
-    ## 299      55     259
-    ## 300      55     259
-    ## 301      57     259
-    ## 302      57     259
-    ## 303      57     259
-    ## 304      57     259
-    ## 305      57     259
-    ## 306      57     259
-    ## 307      57     259
-    ## 308      57     259
-    ## 309      57     259
-    ## 310      57     259
-    ## 311      57     259
-    ## 312      57     259
-    ## 313      56     249
-    ## 314      56     249
-    ## 315      56     249
-    ## 316      56     249
-    ## 317      56     249
-    ## 318      56     249
-    ## 319      56     249
-    ## 320      56     249
-    ## 321      56     249
-    ## 322      56     249
-    ## 323      56     249
-    ## 324      56     249
-    ## 325      59     249
-    ## 326      59     249
-    ## 327      59     249
-    ## 328      59     249
-    ## 329      59     249
-    ## 330      59     249
-    ## 331      59     249
-    ## 332      59     249
-    ## 333      59     249
-    ## 334      59     249
-    ## 335      59     249
-    ## 336      59     249
-    ## 337      61     295
-    ## 338      61     295
-    ## 339      61     295
-    ## 340      61     295
-    ## 341      61     295
-    ## 342      61     295
-    ## 343      61     295
-    ## 344      61     295
-    ## 345      61     295
-    ## 346      61     295
-    ## 347      61     295
-    ## 348      61     295
-    ## 349      65     295
-    ## 350      65     295
-    ## 351      65     295
-    ## 352      65     295
-    ## 353      65     295
-    ## 354      65     295
-    ## 355      65     295
-    ## 356      65     295
-    ## 357      65     295
-    ## 358      65     295
-    ## 359      65     295
-    ## 360      65     295
-    ## 361      62     294
-    ## 362      62     294
-    ## 363      62     294
-    ## 364      62     294
-    ## 365      62     294
-    ## 366      62     294
-    ## 367      62     294
-    ## 368      62     294
-    ## 369      62     294
-    ## 370      62     294
-    ## 371      62     294
-    ## 372      62     294
-    ## 373      66     294
-    ## 374      66     294
-    ## 375      66     294
-    ## 376      66     294
-    ## 377      66     294
-    ## 378      66     294
-    ## 379      66     294
-    ## 380      66     294
-    ## 381      66     294
-    ## 382      66     294
-    ## 383      66     294
-    ## 384      66     294
-    ## 385      58     280
-    ## 386      58     280
-    ## 387      58     280
-    ## 388      58     280
-    ## 389      58     280
-    ## 390      58     280
-    ## 391      58     280
-    ## 392      58     280
-    ## 393      58     280
-    ## 394      58     280
-    ## 395      58     280
-    ## 396      58     280
-    ## 397      59     280
-    ## 398      59     280
-    ## 399      59     280
-    ## 400      59     280
-    ## 401      59     280
-    ## 402      59     280
-    ## 403      59     280
-    ## 404      59     280
-    ## 405      59     280
-    ## 406      59     280
-    ## 407      59     280
-    ## 408      59     280
-    ## 409      46     246
-    ## 410      46     246
-    ## 411      46     246
-    ## 412      46     246
-    ## 413      46     246
-    ## 414      46     246
-    ## 415      46     246
-    ## 416      46     246
-    ## 417      46     246
-    ## 418      46     246
-    ## 419      46     246
-    ## 420      46     246
-    ## 421      47     246
-    ## 422      47     246
-    ## 423      47     246
-    ## 424      47     246
-    ## 425      47     246
-    ## 426      47     246
-    ## 427      47     246
-    ## 428      47     246
-    ## 429      47     246
-    ## 430      47     246
-    ## 431      47     246
-    ## 432      47     246
-    ## 433      46     272
-    ## 434      46     272
-    ## 435      46     272
-    ## 436      46     271
-    ## 437      46     271
-    ## 438      46     271
-    ## 439      46     272
-    ## 440      46     272
-    ## 441      46     272
-    ## 442      46     272
-    ## 443      46     272
-    ## 444      46     272
-    ## 445      45     271
-    ## 446      45     271
-    ## 447      45     271
-    ## 448      45     271
-    ## 449      45     271
-    ## 450      45     271
-    ## 451      45     271
-    ## 452      45     271
-    ## 453      45     271
-    ## 454      45     271
-    ## 455      45     271
-    ## 456      45     271
-    ## 457      47     257
-    ## 458      47     257
-    ## 459      47     257
-    ## 460      47     257
-    ## 461      47     257
-    ## 462      47     257
-    ## 463      47     257
-    ## 464      47     257
-    ## 465      47     257
-    ## 466      47     257
-    ## 467      47     257
-    ## 468      47     257
-    ## 469      48     257
-    ## 470      48     257
-    ## 471      48     257
-    ## 472      48     257
-    ## 473      48     257
-    ## 474      48     257
-    ## 475      48     257
-    ## 476      48     257
-    ## 477      48     257
-    ## 478      48     257
-    ## 479      48     257
-    ## 480      48     257
-    ## 481      55     262
-    ## 482      55     262
-    ## 483      55     262
-    ## 484      55     262
-    ## 485      55     262
-    ## 486      55     262
-    ## 487      55     262
-    ## 488      55     262
-    ## 489      55     262
-    ## 490      55     262
-    ## 491      55     262
-    ## 492      55     262
-    ## 493      54     262
-    ## 494      54     262
-    ## 495      54     262
-    ## 496      54     262
-    ## 497      54     262
-    ## 498      54     262
-    ## 499      54     262
-    ## 500      54     262
-    ## 501      54     262
-    ## 502      54     262
-    ## 503      54     262
-    ## 504      54     262
-    ## 505      55     264
-    ## 506      55     264
-    ## 507      55     264
-    ## 508      55     264
-    ## 509      55     264
-    ## 510      55     262
-    ## 511      55     261
-    ## 512      55     261
-    ## 513      55     261
-    ## 514      55     261
-    ## 515      55     261
-    ## 516      55     261
-    ## 517      55     258
-    ## 518      55     258
-    ## 519      55     258
-    ## 520      55     258
-    ## 521      55     257
-    ## 522      56     257
-    ## 523      56     257
-    ## 524      56     257
-    ## 525      56     257
-    ## 526      56     258
-    ## 527      56     259
-    ## 528      56     259
-    ## 529      57     269
-    ## 530      57     269
-    ## 531      57     269
-    ## 532      57     269
-    ## 533      57     268
-    ## 534      57     268
-    ## 535      57     268
-    ## 536      57     268
-    ## 537      57     268
-    ## 538      57     268
-    ## 539      57     269
-    ## 540      57     269
-    ## 541      58     268
-    ## 542      58     268
-    ## 543      58     268
-    ## 544      58     268
-    ## 545      58     268
-    ## 546      58     268
-    ## 547      58     268
-    ## 548      58     268
-    ## 549      58     268
-    ## 550      59     268
-    ## 551      60     270
-    ## 552      60     270
-    ## 553      57     255
-    ## 554      57     255
-    ## 555      57     255
-    ## 556      57     256
-    ## 557      57     257
-    ## 558      57     258
-    ## 559      57     258
-    ## 560      57     258
-    ## 561      57     258
-    ## 562      57     258
-    ## 563      57     258
-    ## 564      57     258
-    ## 565      54     257
-    ## 566      54     257
-    ## 567      54     257
-    ## 568      54     256
-    ## 569      54     256
-    ## 570      54     256
-    ## 571      54     256
-    ## 572      54     256
-    ## 573      54     256
-    ## 574      54     256
-    ## 575      54     256
-    ## 576      54     256
-    ## 577      46     199
-    ## 578      46     199
-    ## 579      46     199
-    ## 580      46     199
-    ## 581      46     199
-    ## 582      46     199
-    ## 583      46     199
-    ## 584      46     199
-    ## 585      46     199
-    ## 586      46     199
-    ## 587      46     199
-    ## 588      46     199
-    ## 589      47     196
-    ## 590      47     196
-    ## 591      47     195
-    ## 592      47     196
-    ## 593      47     197
-    ## 594      47     198
-    ## 595      47     198
-    ## 596      47     198
-    ## 597      47     198
-    ## 598      47     198
-    ## 599      47     198
-    ## 600      47     198
-    ## 601      45     207
-    ## 602      45     207
-    ## 603      45     207
-    ## 604      45     207
-    ## 605      45     207
-    ## 606      45     207
-    ## 607      45     207
-    ## 608      45     207
-    ## 609      45     207
-    ## 610      45     207
-    ## 611      45     207
-    ## 612      45     207
-    ## 613      45     203
-    ## 614      45     203
-    ## 615      45     204
-    ## 616      45     205
-    ## 617      45     205
-    ## 618      45     206
-    ## 619      45     206
-    ## 620      45     206
-    ## 621      45     206
-    ## 622      45     206
-    ## 623      45     206
-    ## 624      45     206
-    ## 625      45     210
-    ## 626      45     210
-    ## 627      45     210
-    ## 628      45     210
-    ## 629      45     210
-    ## 630      45     210
-    ## 631      45     210
-    ## 632      45     210
-    ## 633      45     210
-    ## 634      45     210
-    ## 635      45     211
-    ## 636      45     211
-    ## 637      45     210
-    ## 638      45     210
-    ## 639      45     210
-    ## 640      45     210
-    ## 641      45     210
-    ## 642      45     210
-    ## 643      45     210
-    ## 644      46     210
-    ## 645      46     210
-    ## 646      46     210
-    ## 647      46     210
-    ## 648      46     210
-    ## 649      50     211
-    ## 650      50     211
-    ## 651      50     211
-    ## 652      50     210
-    ## 653      50     210
-    ## 654      50     210
-    ## 655      50     210
-    ## 656      50     210
-    ## 657      50     210
-    ## 658      50     210
-    ## 659      50     211
-    ## 660      50     211
-    ## 661      50     211
-    ## 662      50     211
-    ## 663      50     211
-    ## 664      50     211
-    ## 665      50     211
-    ## 666      50     211
-    ## 667      50     211
-    ## 668      50     211
-    ## 669      50     211
-    ## 670      50     211
-    ## 671      50     211
-    ## 672      50     211
-    ## 673      48     203
-    ## 674      48     203
-    ## 675      48     203
-    ## 676      48     203
-    ## 677      48     203
-    ## 678      48     203
-    ## 679      48     203
-    ## 680      48     203
-    ## 681      48     203
-    ## 682      48     203
-    ## 683      48     203
-    ## 684      48     203
-    ## 685      48     203
-    ## 686      48     203
-    ## 687      48     204
-    ## 688      48     204
-    ## 689      48     204
-    ## 690      48     204
-    ## 691      48     204
-    ## 692      48     205
-    ## 693      48     205
-    ## 694      48     205
-    ## 695      48     205
-    ## 696      48     205
-    ## 697      45     201
-    ## 698      45     201
-    ## 699      45     202
-    ## 700      45     202
-    ## 701      45     202
-    ## 702      45     202
-    ## 703      45     202
-    ## 704      45     202
-    ## 705      45     202
-    ## 706      45     202
-    ## 707      45     202
-    ## 708      45     202
-    ## 709      45     201
-    ## 710      45     201
-    ## 711      45     201
-    ## 712      45     201
-    ## 713      45     201
-    ## 714      45     201
-    ## 715      45     201
-    ## 716      45     201
-    ## 717      45     201
-    ## 718      45     201
-    ## 719      45     202
-    ## 720      45     202
-    ## 721      50     233
-    ## 722      50     233
-    ## 723      50     233
-    ## 724      50     233
-    ## 725      50     232
-    ## 726      50     232
-    ## 727      50     232
-    ## 728      50     232
-    ## 729      50     233
-    ## 730      50     233
-    ## 731      50     234
-    ## 732      50     234
-    ## 733      50     231
-    ## 734      50     231
-    ## 735      50     233
-    ## 736      50     234
-    ## 737      50     235
-    ## 738      50     235
-    ## 739      50     236
-    ## 740      50     236
-    ## 741      50     236
-    ## 742      50     236
-    ## 743      50     236
-    ## 744      50     236
-    ## 745      57     254
-    ## 746      57     254
-    ## 747      57     253
-    ## 748      57     254
-    ## 749      57     255
-    ## 750      57     255
-    ## 751      58     254
-    ## 752      58     255
-    ## 753      58     255
-    ## 754      59     255
-    ## 755      59     257
-    ## 756      59     257
-    ## 757      57     255
-    ## 758      57     255
-    ## 759      57     253
-    ## 760      57     254
-    ## 761      57     254
-    ## 762      57     255
-    ## 763      56     255
-    ## 764      57     255
-    ## 765      57     255
-    ## 766      57     255
-    ## 767      59     255
-    ## 768      59     255
-    ## 769      51     193
-    ## 770      51     193
-    ## 771      51     192
-    ## 772      51     192
-    ## 773      51     192
-    ## 774      51     193
-    ## 775      51     192
-    ## 776      51     193
-    ## 777      51     193
-    ## 778      51     193
-    ## 779      51     193
-    ## 780      51     193
-    ## 781      51     192
-    ## 782      51     192
-    ## 783      51     191
-    ## 784      51     190
-    ## 785      51     190
-    ## 786      51     191
-    ## 787      51     191
-    ## 788      51     191
-    ## 789      51     191
-    ## 790      51     191
-    ## 791      51     194
-    ## 792      51     194
-    ## 793      53     200
-    ## 794      53     200
-    ## 795      53     200
-    ## 796      53     201
-    ## 797      53     201
-    ## 798      52     201
-    ## 799      52     201
-    ## 800      53     201
-    ## 801      53     201
-    ## 802      53     201
-    ## 803      54     201
-    ## 804      54     201
-    ## 805      53     200
-    ## 806      53     200
-    ## 807      53     199
-    ## 808      53     199
-    ## 809      53     199
-    ## 810      53     199
-    ## 811      53     199
-    ## 812      53     199
-    ## 813      53     199
-    ## 814      53     199
-    ## 815      53     201
-    ## 816      53     201
-    ## 817      44     188
-    ## 818      44     188
-    ## 819      44     188
-    ## 820      44     188
-    ## 821      44     188
-    ## 822      44     188
+    ##     year month day prez_gop gov_gop sen_gop rep_gop prez_dem gov_dem sen_dem
+    ## 1   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 2   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 3   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 4   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 5   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 6   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 7   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 8   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 9   1947  <NA>  15        0      23      51     253        1      23      45
+    ## 10  1947  <NA>  15        0      23      51     253        1      23      45
+    ## 11  1947  <NA>  15        0      24      51     253        1      23      45
+    ## 12  1947  <NA>  15        0      24      51     253        1      23      45
+    ## 13  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 14  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 15  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 16  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 17  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 18  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 19  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 20  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 21  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 22  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 23  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 24  1948  <NA>  15        0      22      53     253        1      24      48
+    ## 25  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 26  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 27  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 28  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 29  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 30  1949  <NA>  15        0      18      45     177        1      29      58
+    ## 31  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 32  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 33  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 34  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 35  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 36  1949  <NA>  15        0      18      45     177        1      30      58
+    ## 37  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 38  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 39  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 40  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 41  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 42  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 43  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 44  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 45  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 46  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 47  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 48  1950  <NA>  15        0      18      44     177        1      29      57
+    ## 49  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 50  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 51  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 52  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 53  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 54  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 55  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 56  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 57  1951  <NA>  15        0      24      47     207        1      22      51
+    ## 58  1951  <NA>  15        0      25      47     207        1      22      51
+    ## 59  1951  <NA>  15        0      25      47     207        1      22      51
+    ## 60  1951  <NA>  15        0      25      47     207        1      22      51
+    ## 61  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 62  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 63  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 64  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 65  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 66  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 67  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 68  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 69  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 70  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 71  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 72  1952  <NA>  15        0      24      50     207        1      22      50
+    ## 73  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 74  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 75  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 76  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 77  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 78  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 79  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 80  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 81  1953  <NA>  15        1      29      50     222        0      17      49
+    ## 82  1953  <NA>  15        1      30      50     222        0      18      49
+    ## 83  1953  <NA>  15        1      30      50     222        0      18      49
+    ## 84  1953  <NA>  15        1      30      50     222        0      18      49
+    ## 85  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 86  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 87  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 88  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 89  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 90  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 91  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 92  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 93  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 94  1954  <NA>  15        1      29      55     222        0      18      53
+    ## 95  1954  <NA>  15        1      29      55     222        0      19      53
+    ## 96  1954  <NA>  15        1      29      55     222        0      19      53
+    ## 97  1955  <NA>  15        1      21      47     204        0      26      48
+    ## 98  1955  <NA>  15        1      21      47     204        0      26      48
+    ## 99  1955  <NA>  15        1      21      47     204        0      26      48
+    ## 100 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 101 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 102 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 103 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 104 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 105 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 106 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 107 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 108 1955  <NA>  15        1      21      47     204        0      26      48
+    ## 109 1956  <NA>  15        1      21      49     204        0      26      51
+    ## 110 1956  <NA>  15        1      21      49     204        0      26      51
+    ## 111 1956  <NA>  15        1      21      49     204        0      26      51
+    ## 112 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 113 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 114 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 115 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 116 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 117 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 118 1956  <NA>  15        1      21      49     204        0      26      50
+    ## 119 1956  <NA>  15        1      21      49     204        0      26      51
+    ## 120 1956  <NA>  15        1      21      49     204        0      26      51
+    ## 121 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 122 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 123 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 124 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 125 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 126 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 127 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 128 1957  <NA>  15        1      19      47     203        0      28      52
+    ## 129 1957  <NA>  15        1      20      47     203        0      28      52
+    ## 130 1957  <NA>  15        1      20      47     203        0      28      52
+    ## 131 1957  <NA>  15        1      20      47     203        0      28      52
+    ## 132 1957  <NA>  15        1      20      47     203        0      28      52
+    ## 133 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 134 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 135 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 136 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 137 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 138 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 139 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 140 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 141 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 142 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 143 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 144 1958  <NA>  15        1      20      47     203        0      28      52
+    ## 145 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 146 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 147 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 148 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 149 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 150 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 151 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 152 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 153 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 154 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 155 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 156 1959  <NA>  15        1      15      35     159        0      35      65
+    ## 157 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 158 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 159 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 160 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 161 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 162 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 163 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 164 1960  <NA>  15        1      16      35     159        0      34      70
+    ## 165 1960  <NA>  15        1      17      35     159        0      34      70
+    ## 166 1960  <NA>  15        1      17      35     159        0      34      70
+    ## 167 1960  <NA>  15        1      17      35     159        0      34      70
+    ## 168 1960  <NA>  15        1      17      35     159        0      34      70
+    ## 169 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 170 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 171 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 172 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 173 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 174 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 175 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 176 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 177 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 178 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 179 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 180 1961  <NA>  15        0      16      37     176        1      34      64
+    ## 181 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 182 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 183 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 184 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 185 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 186 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 187 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 188 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 189 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 190 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 191 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 192 1962  <NA>  15        0      16      42     176        1      34      65
+    ## 193 1963  <NA>  15        0      17      34     182        1      33      68
+    ## 194 1963  <NA>  15        0      17      34     182        1      33      68
+    ## 195 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 196 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 197 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 198 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 199 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 200 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 201 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 202 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 203 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 204 1963  <NA>  15        0      16      34     182        1      34      68
+    ## 205 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 206 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 207 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 208 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 209 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 210 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 211 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 212 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 213 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 214 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 215 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 216 1964  <NA>  15        0      16      34     182        1      34      71
+    ## 217 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 218 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 219 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 220 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 221 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 222 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 223 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 224 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 225 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 226 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 227 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 228 1965  <NA>  15        0      17      32     141        1      33      69
+    ## 229 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 230 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 231 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 232 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 233 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 234 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 235 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 236 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 237 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 238 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 239 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 240 1966  <NA>  15        0      18      33     141        1      33      70
+    ## 241 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 242 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 243 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 244 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 245 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 246 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 247 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 248 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 249 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 250 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 251 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 252 1967  <NA>  15        0      25      36     188        1      27      64
+    ## 253 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 254 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 255 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 256 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 257 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 258 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 259 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 260 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 261 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 262 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 263 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 264 1968  <NA>  15        0      26      39     188        1      26      65
+    ## 265 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 266 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 267 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 268 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 269 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 270 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 271 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 272 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 273 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 274 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 275 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 276 1969  <NA>  15        1      31      43     199        0      22      57
+    ## 277 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 278 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 279 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 280 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 281 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 282 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 283 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 284 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 285 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 286 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 287 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 288 1970  <NA>  15        1      32      43     199        0      20      58
+    ## 289 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 290 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 291 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 292 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 293 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 294 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 295 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 296 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 297 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 298 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 299 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 300 1971  <NA>  15        1      21      44     185        0      30      55
+    ## 301 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 302 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 303 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 304 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 305 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 306 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 307 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 308 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 309 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 310 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 311 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 312 1972  <NA>  15        1      20      44     185        0      31      57
+    ## 313 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 314 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 315 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 316 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 317 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 318 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 319 1973  <NA>  15        1      19      42     195        0      32      56
+    ## 320 1973  <NA>  15        1      20      42     195        0      32      56
+    ## 321 1973  <NA>  15        1      20      42     195        0      32      56
+    ## 322 1973  <NA>  15        1      20      42     195        0      32      56
+    ## 323 1973  <NA>  15        1      20      42     195        0      32      56
+    ## 324 1973  <NA>  15        1      20      42     195        0      32      56
+    ## 325 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 326 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 327 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 328 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 329 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 330 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 331 1974  <NA>  15        1      18      45     195        0      34      59
+    ## 332 1974  <NA>  15        2      18      45     195        0      34      59
+    ## 333 1974  <NA>  15        2      18      45     195        0      34      59
+    ## 334 1974  <NA>  15        2      18      45     195        0      34      59
+    ## 335 1974  <NA>  15        2      18      45     195        0      34      59
+    ## 336 1974  <NA>  15        2      18      45     195        0      34      59
+    ## 337 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 338 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 339 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 340 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 341 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 342 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 343 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 344 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 345 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 346 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 347 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 348 1975  <NA>  15        1      13      38     148        0      37      61
+    ## 349 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 350 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 351 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 352 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 353 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 354 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 355 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 356 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 357 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 358 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 359 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 360 1976  <NA>  15        1      13      39     148        0      37      65
+    ## 361 1977  <NA>  15        0      12      38     147        1      38      62
+    ## 362 1977  <NA>  15        0      12      38     147        1      38      62
+    ## 363 1977  <NA>  15        0      12      38     147        1      38      62
+    ## 364 1977  <NA>  15        0      12      38     147        1      38      62
+    ## 365 1977  <NA>  15        0      12      38     147        1      38      62
+    ## 366 1977  <NA>  15        0      12      38     147        1      39      62
+    ## 367 1977  <NA>  15        0      12      38     147        1      40      62
+    ## 368 1977  <NA>  15        0      12      38     147        1      40      62
+    ## 369 1977  <NA>  15        0      12      38     147        1      40      62
+    ## 370 1977  <NA>  15        0      12      38     147        1      40      62
+    ## 371 1977  <NA>  15        0      12      38     147        1      41      62
+    ## 372 1977  <NA>  15        0      12      38     147        1      41      62
+    ## 373 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 374 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 375 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 376 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 377 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 378 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 379 1978  <NA>  15        0      12      41     147        1      38      66
+    ## 380 1978  <NA>  15        0      12      41     147        1      39      66
+    ## 381 1978  <NA>  15        0      12      41     147        1      39      66
+    ## 382 1978  <NA>  15        0      12      41     147        1      39      66
+    ## 383 1978  <NA>  15        0      12      41     147        1      39      66
+    ## 384 1978  <NA>  15        0      12      41     147        1      39      66
+    ## 385 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 386 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 387 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 388 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 389 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 390 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 391 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 392 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 393 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 394 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 395 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 396 1979  <NA>  15        0      19      41     160        1      32      58
+    ## 397 1980  <NA>  15        0      19      42     160        1      32      59
+    ## 398 1980  <NA>  15        0      19      42     160        1      32      59
+    ## 399 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 400 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 401 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 402 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 403 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 404 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 405 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 406 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 407 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 408 1980  <NA>  15        0      20      42     160        1      31      59
+    ## 409 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 410 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 411 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 412 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 413 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 414 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 415 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 416 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 417 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 418 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 419 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 420 1981  <NA>  15        1      24      53     196        0      27      46
+    ## 421 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 422 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 423 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 424 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 425 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 426 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 427 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 428 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 429 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 430 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 431 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 432 1982  <NA>  15        1      24      54     196        0      27      47
+    ## 433 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 434 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 435 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 436 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 437 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 438 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 439 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 440 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 441 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 442 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 443 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 444 1983  <NA>  15        1      16      55     168        0      34      46
+    ## 445 1984  <NA>  15        1      16      55     168        0      34      45
+    ## 446 1984  <NA>  15        1      16      55     168        0      34      45
+    ## 447 1984  <NA>  15        1      15      55     168        0      34      45
+    ## 448 1984  <NA>  15        1      15      55     168        0      34      45
+    ## 449 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 450 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 451 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 452 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 453 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 454 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 455 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 456 1984  <NA>  15        1      15      55     168        0      35      45
+    ## 457 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 458 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 459 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 460 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 461 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 462 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 463 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 464 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 465 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 466 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 467 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 468 1985  <NA>  15        1      16      53     183        0      34      47
+    ## 469 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 470 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 471 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 472 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 473 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 474 1986  <NA>  15        1      16      53     183        0      34      48
+    ## 475 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 476 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 477 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 478 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 479 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 480 1986  <NA>  15        1      16      54     183        0      34      48
+    ## 481 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 482 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 483 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 484 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 485 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 486 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 487 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 488 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 489 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 490 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 491 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 492 1987  <NA>  15        1      24      46     179        0      27      55
+    ## 493 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 494 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 495 1988  <NA>  15        1      25      46     179        0      28      54
+    ## 496 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 497 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 498 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 499 1988  <NA>  15        1      24      46     178        0      28      54
+    ## 500 1988  <NA>  15        1      24      46     178        0      28      54
+    ## 501 1988  <NA>  15        1      24      46     178        0      28      54
+    ## 502 1988  <NA>  15        1      24      46     178        0      28      54
+    ## 503 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 504 1988  <NA>  15        1      24      46     179        0      28      54
+    ## 505 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 506 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 507 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 508 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 509 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 510 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 511 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 512 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 513 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 514 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 515 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 516 1989  <NA>  15        1      23      46     178        0      29      55
+    ## 517 1990  <NA>  15        1      22      46     176        0      30      55
+    ## 518 1990  <NA>  15        1      22      46     176        0      30      55
+    ## 519 1990  <NA>  15        1      22      46     176        0      30      55
+    ## 520 1990  <NA>  15        1      22      46     176        0      30      55
+    ## 521 1990  <NA>  15        1      22      46     176        0      30      55
+    ## 522 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 523 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 524 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 525 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 526 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 527 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 528 1990  <NA>  15        1      22      46     176        0      30      56
+    ## 529 1991  <NA>  15        1      20      45     168        0      29      57
+    ## 530 1991  <NA>  15        1      20      45     168        0      29      57
+    ## 531 1991  <NA>  15        1      21      45     166        0      28      57
+    ## 532 1991  <NA>  15        1      21      45     166        0      28      57
+    ## 533 1991  <NA>  15        1      21      45     166        0      28      57
+    ## 534 1991  <NA>  15        1      21      45     166        0      28      57
+    ## 535 1991  <NA>  15        1      21      45     166        0      28      57
+    ## 536 1991  <NA>  15        1      21      45     166        0      29      57
+    ## 537 1991  <NA>  15        1      21      45     166        0      29      57
+    ## 538 1991  <NA>  15        1      21      45     166        0      29      57
+    ## 539 1991  <NA>  15        1      21      45     167        0      29      57
+    ## 540 1991  <NA>  15        1      21      45     167        0      29      57
+    ## 541 1992  <NA>  15        1      20      43     166        0      27      58
+    ## 542 1992  <NA>  15        1      20      43     166        0      27      58
+    ## 543 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 544 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 545 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 546 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 547 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 548 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 549 1992  <NA>  15        1      20      43     166        0      28      58
+    ## 550 1992  <NA>  15        1      20      43     166        0      28      59
+    ## 551 1992  <NA>  15        1      20      43     166        0      28      60
+    ## 552 1992  <NA>  15        1      20      43     166        0      28      60
+    ## 553 1993  <NA>  15        0      18      46     175        1      30      57
+    ## 554 1993  <NA>  15        0      18      46     175        1      30      57
+    ## 555 1993  <NA>  15        0      18      46     175        1      30      57
+    ## 556 1993  <NA>  15        0      18      46     175        1      30      57
+    ## 557 1993  <NA>  15        0      17      46     177        1      31      57
+    ## 558 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 559 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 560 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 561 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 562 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 563 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 564 1993  <NA>  15        0      17      46     178        1      31      57
+    ## 565 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 566 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 567 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 568 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 569 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 570 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 571 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 572 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 573 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 574 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 575 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 576 1994  <NA>  15        0      19      48     178        1      28      54
+    ## 577 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 578 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 579 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 580 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 581 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 582 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 583 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 584 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 585 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 586 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 587 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 588 1995  <NA>  15        0      30      54     235        1      20      46
+    ## 589 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 590 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 591 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 592 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 593 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 594 1996  <NA>  15        0      31      54     236        1      19      47
+    ## 595 1996  <NA>  15        0      32      54     235        1      19      47
+    ## 596 1996  <NA>  15        0      32      54     235        1      19      47
+    ## 597 1996  <NA>  15        0      32      54     235        1      19      47
+    ## 598 1996  <NA>  15        0      32      54     235        1      19      47
+    ## 599 1996  <NA>  15        0      32      55     235        1      19      47
+    ## 600 1996  <NA>  15        0      32      55     235        1      19      47
+    ## 601 1997  <NA>  15        0      32      55     227        1      18      45
+    ## 602 1997  <NA>  15        0      32      55     227        1      18      45
+    ## 603 1997  <NA>  15        0      32      55     227        1      18      45
+    ## 604 1997  <NA>  15        0      32      55     227        1      18      45
+    ## 605 1997  <NA>  15        0      32      55     228        1      18      45
+    ## 606 1997  <NA>  15        0      32      55     228        1      18      45
+    ## 607 1997  <NA>  15        0      32      55     228        1      18      45
+    ## 608 1997  <NA>  15        0      33      55     228        1      18      45
+    ## 609 1997  <NA>  15        0      34      55     228        1      18      45
+    ## 610 1997  <NA>  15        0      34      55     228        1      18      45
+    ## 611 1997  <NA>  15        0      34      55     229        1      18      45
+    ## 612 1997  <NA>  15        0      34      55     229        1      18      45
+    ## 613 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 614 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 615 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 616 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 617 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 618 1998  <NA>  15        0      32      55     227        1      18      45
+    ## 619 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 620 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 621 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 622 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 623 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 624 1998  <NA>  15        0      32      55     228        1      18      45
+    ## 625 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 626 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 627 1999  <NA>  15        0      31      55     222        1      17      45
+    ## 628 1999  <NA>  15        0      31      55     222        1      17      45
+    ## 629 1999  <NA>  15        0      31      55     222        1      17      45
+    ## 630 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 631 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 632 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 633 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 634 1999  <NA>  15        0      31      55     223        1      17      45
+    ## 635 1999  <NA>  15        0      31      56     223        1      17      45
+    ## 636 1999  <NA>  15        0      31      56     223        1      17      45
+    ## 637 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 638 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 639 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 640 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 641 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 642 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 643 2000  <NA>  15        0      30      55     223        1      18      45
+    ## 644 2000  <NA>  15        0      30      55     223        1      18      46
+    ## 645 2000  <NA>  15        0      30      55     223        1      18      46
+    ## 646 2000  <NA>  15        0      30      55     223        1      18      46
+    ## 647 2000  <NA>  15        0      30      55     223        1      19      46
+    ## 648 2000  <NA>  15        0      30      55     223        1      19      46
+    ## 649 2001  <NA>  15        1      29      49     220        0      19      50
+    ## 650 2001  <NA>  15        1      29      49     220        0      19      50
+    ## 651 2001  <NA>  15        1      29      49     220        0      19      50
+    ## 652 2001  <NA>  15        1      29      49     220        0      19      50
+    ## 653 2001  <NA>  15        1      29      49     220        0      19      50
+    ## 654 2001  <NA>  15        1      29      49     221        0      19      50
+    ## 655 2001  <NA>  15        1      29      49     222        0      19      50
+    ## 656 2001  <NA>  15        1      29      49     222        0      19      50
+    ## 657 2001  <NA>  15        1      29      49     222        0      19      50
+    ## 658 2001  <NA>  15        1      30      49     222        0      19      50
+    ## 659 2001  <NA>  15        1      30      49     223        0      19      50
+    ## 660 2001  <NA>  15        1      30      49     223        0      19      50
+    ## 661 2002  <NA>  15        1      27      50     221        0      21      50
+    ## 662 2002  <NA>  15        1      27      50     221        0      21      50
+    ## 663 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 664 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 665 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 666 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 667 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 668 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 669 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 670 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 671 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 672 2002  <NA>  15        1      27      50     222        0      21      50
+    ## 673 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 674 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 675 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 676 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 677 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 678 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 679 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 680 2003  <NA>  15        1      26      51     231        0      24      48
+    ## 681 2003  <NA>  15        1      26      51     231        0      25      48
+    ## 682 2003  <NA>  15        1      26      51     231        0      25      48
+    ## 683 2003  <NA>  15        1      27      51     231        0      25      48
+    ## 684 2003  <NA>  15        1      27      51     231        0      25      48
+    ## 685 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 686 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 687 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 688 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 689 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 690 2004  <NA>  15        1      28      51     229        0      22      48
+    ## 691 2004  <NA>  15        1      29      51     229        0      22      48
+    ## 692 2004  <NA>  15        1      29      51     229        0      22      48
+    ## 693 2004  <NA>  15        1      29      51     229        0      22      48
+    ## 694 2004  <NA>  15        1      29      51     229        0      22      48
+    ## 695 2004  <NA>  15        1      29      51     229        0      23      48
+    ## 696 2004  <NA>  15        1      29      51     229        0      23      48
+    ## 697 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 698 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 699 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 700 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 701 2005  <NA>  15        1      28      54     231        0      22      45
+    ## 702 2005  <NA>  15        1      28      54     231        0      22      45
+    ## 703 2005  <NA>  15        1      28      54     231        0      22      45
+    ## 704 2005  <NA>  15        1      28      54     231        0      22      45
+    ## 705 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 706 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 707 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 708 2005  <NA>  15        1      28      54     232        0      22      45
+    ## 709 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 710 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 711 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 712 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 713 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 714 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 715 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 716 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 717 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 718 2006  <NA>  15        1      28      54     231        0      22      45
+    ## 719 2006  <NA>  15        1      28      54     232        0      22      45
+    ## 720 2006  <NA>  15        1      28      54     232        0      22      45
+    ## 721 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 722 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 723 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 724 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 725 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 726 2007  <NA>  15        1      22      47     201        0      28      50
+    ## 727 2007  <NA>  15        1      22      48     201        0      28      50
+    ## 728 2007  <NA>  15        1      22      48     202        0      28      50
+    ## 729 2007  <NA>  15        1      22      48     202        0      28      50
+    ## 730 2007  <NA>  15        1      22      48     202        0      28      50
+    ## 731 2007  <NA>  15        1      22      48     202        0      28      50
+    ## 732 2007  <NA>  15        1      22      48     202        0      28      50
+    ## 733 2008  <NA>  15        1      22      48     198        0      28      50
+    ## 734 2008  <NA>  15        1      22      48     198        0      28      50
+    ## 735 2008  <NA>  15        1      22      48     198        0      28      50
+    ## 736 2008  <NA>  15        1      22      48     198        0      28      50
+    ## 737 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 738 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 739 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 740 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 741 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 742 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 743 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 744 2008  <NA>  15        1      22      48     199        0      28      50
+    ## 745 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 746 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 747 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 748 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 749 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 750 2009  <NA>  15        0      22      40     179        1      28      57
+    ## 751 2009  <NA>  15        0      22      40     179        1      28      58
+    ## 752 2009  <NA>  15        0      24      40     179        1      28      58
+    ## 753 2009  <NA>  15        0      24      41     179        1      28      58
+    ## 754 2009  <NA>  15        0      24      41     179        1      28      59
+    ## 755 2009  <NA>  15        0      24      41     179        1      28      59
+    ## 756 2009  <NA>  15        0      24      41     179        1      28      59
+    ## 757 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 758 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 759 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 760 2010  <NA>  15        0      24      41     177        1      26      57
+    ## 761 2010  <NA>  15        0      24      41     177        1      26      57
+    ## 762 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 763 2010  <NA>  15        0      24      41     178        1      26      56
+    ## 764 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 765 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 766 2010  <NA>  15        0      24      41     178        1      26      57
+    ## 767 2010  <NA>  15        0      24      41     178        1      27      59
+    ## 768 2010  <NA>  15        0      24      41     178        1      27      59
+    ## 769 2011  <NA>  15        0      29      47     241        1      21      51
+    ## 770 2011  <NA>  15        0      29      47     241        1      21      51
+    ## 771 2011  <NA>  15        0      29      47     241        1      21      51
+    ## 772 2011  <NA>  15        0      29      47     241        1      21      51
+    ## 773 2011  <NA>  15        0      29      47     240        1      21      51
+    ## 774 2011  <NA>  15        0      29      47     240        1      21      51
+    ## 775 2011  <NA>  15        0      29      47     240        1      21      51
+    ## 776 2011  <NA>  15        0      29      47     240        1      21      51
+    ## 777 2011  <NA>  15        0      29      47     242        1      21      51
+    ## 778 2011  <NA>  15        0      29      47     242        1      21      51
+    ## 779 2011  <NA>  15        0      29      47     242        1      21      51
+    ## 780 2011  <NA>  15        0      29      47     242        1      21      51
+    ## 781 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 782 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 783 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 784 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 785 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 786 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 787 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 788 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 789 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 790 2012  <NA>  15        0      29      47     242        1      21      51
+    ## 791 2012  <NA>  15        0      29      47     243        1      21      51
+    ## 792 2012  <NA>  15        0      29      47     243        1      21      51
+    ## 793 2013  <NA>  15        0      30      45     232        1      20      53
+    ## 794 2013  <NA>  15        0      30      45     232        1      20      53
+    ## 795 2013  <NA>  15        0      30      45     232        1      20      53
+    ## 796 2013  <NA>  15        0      30      45     232        1      20      53
+    ## 797 2013  <NA>  15        0      30      45     233        1      20      53
+    ## 798 2013  <NA>  15        0      30      46     234        1      20      52
+    ## 799 2013  <NA>  15        0      30      46     234        1      20      52
+    ## 800 2013  <NA>  15        0      30      46     234        1      20      53
+    ## 801 2013  <NA>  15        0      30      46     234        1      20      53
+    ## 802 2013  <NA>  15        0      30      46     234        1      20      53
+    ## 803 2013  <NA>  15        0      30      46     234        1      20      54
+    ## 804 2013  <NA>  15        0      30      46     234        1      20      54
+    ## 805 2014  <NA>  15        0      29      45     232        1      21      53
+    ## 806 2014  <NA>  15        0      29      45     232        1      21      53
+    ## 807 2014  <NA>  15        0      29      45     233        1      21      53
+    ## 808 2014  <NA>  15        0      29      45     233        1      21      53
+    ## 809 2014  <NA>  15        0      29      45     233        1      21      53
+    ## 810 2014  <NA>  15        0      29      45     233        1      21      53
+    ## 811 2014  <NA>  15        0      29      45     234        1      21      53
+    ## 812 2014  <NA>  15        0      29      45     234        1      21      53
+    ## 813 2014  <NA>  15        0      29      45     234        1      21      53
+    ## 814 2014  <NA>  15        0      29      45     234        1      21      53
+    ## 815 2014  <NA>  15        0      29      45     235        1      21      53
+    ## 816 2014  <NA>  15        0      29      45     235        1      21      53
+    ## 817 2015  <NA>  15        0      31      54     245        1      18      44
+    ## 818 2015  <NA>  15        0      31      54     245        1      18      44
+    ## 819 2015  <NA>  15        0      31      54     245        1      18      44
+    ## 820 2015  <NA>  15        0      31      54     244        1      18      44
+    ## 821 2015  <NA>  15        0      31      54     245        1      18      44
+    ## 822 2015  <NA>  15        0      31      54     246        1      18      44
+    ##     rep_dem
+    ## 1       198
+    ## 2       198
+    ## 3       198
+    ## 4       198
+    ## 5       198
+    ## 6       198
+    ## 7       198
+    ## 8       198
+    ## 9       198
+    ## 10      198
+    ## 11      198
+    ## 12      198
+    ## 13      198
+    ## 14      198
+    ## 15      198
+    ## 16      198
+    ## 17      198
+    ## 18      198
+    ## 19      198
+    ## 20      198
+    ## 21      198
+    ## 22      198
+    ## 23      198
+    ## 24      198
+    ## 25      269
+    ## 26      269
+    ## 27      269
+    ## 28      269
+    ## 29      269
+    ## 30      269
+    ## 31      269
+    ## 32      269
+    ## 33      269
+    ## 34      269
+    ## 35      269
+    ## 36      269
+    ## 37      269
+    ## 38      269
+    ## 39      269
+    ## 40      269
+    ## 41      269
+    ## 42      269
+    ## 43      269
+    ## 44      269
+    ## 45      269
+    ## 46      269
+    ## 47      269
+    ## 48      269
+    ## 49      242
+    ## 50      242
+    ## 51      242
+    ## 52      242
+    ## 53      242
+    ## 54      242
+    ## 55      242
+    ## 56      242
+    ## 57      242
+    ## 58      242
+    ## 59      242
+    ## 60      242
+    ## 61      242
+    ## 62      242
+    ## 63      242
+    ## 64      242
+    ## 65      242
+    ## 66      242
+    ## 67      242
+    ## 68      242
+    ## 69      242
+    ## 70      242
+    ## 71      242
+    ## 72      242
+    ## 73      220
+    ## 74      220
+    ## 75      220
+    ## 76      220
+    ## 77      220
+    ## 78      220
+    ## 79      220
+    ## 80      220
+    ## 81      220
+    ## 82      220
+    ## 83      220
+    ## 84      220
+    ## 85      220
+    ## 86      220
+    ## 87      220
+    ## 88      220
+    ## 89      220
+    ## 90      220
+    ## 91      220
+    ## 92      220
+    ## 93      220
+    ## 94      220
+    ## 95      220
+    ## 96      220
+    ## 97      237
+    ## 98      237
+    ## 99      237
+    ## 100     237
+    ## 101     237
+    ## 102     237
+    ## 103     237
+    ## 104     237
+    ## 105     237
+    ## 106     237
+    ## 107     237
+    ## 108     237
+    ## 109     237
+    ## 110     237
+    ## 111     237
+    ## 112     237
+    ## 113     237
+    ## 114     237
+    ## 115     237
+    ## 116     237
+    ## 117     237
+    ## 118     237
+    ## 119     237
+    ## 120     237
+    ## 121     242
+    ## 122     242
+    ## 123     242
+    ## 124     242
+    ## 125     242
+    ## 126     242
+    ## 127     242
+    ## 128     242
+    ## 129     242
+    ## 130     242
+    ## 131     242
+    ## 132     242
+    ## 133     242
+    ## 134     242
+    ## 135     242
+    ## 136     242
+    ## 137     242
+    ## 138     242
+    ## 139     242
+    ## 140     242
+    ## 141     242
+    ## 142     242
+    ## 143     242
+    ## 144     242
+    ## 145     289
+    ## 146     289
+    ## 147     289
+    ## 148     289
+    ## 149     289
+    ## 150     289
+    ## 151     289
+    ## 152     289
+    ## 153     289
+    ## 154     289
+    ## 155     289
+    ## 156     289
+    ## 157     289
+    ## 158     289
+    ## 159     289
+    ## 160     289
+    ## 161     289
+    ## 162     289
+    ## 163     289
+    ## 164     289
+    ## 165     289
+    ## 166     289
+    ## 167     289
+    ## 168     289
+    ## 169     273
+    ## 170     273
+    ## 171     273
+    ## 172     273
+    ## 173     273
+    ## 174     273
+    ## 175     273
+    ## 176     273
+    ## 177     273
+    ## 178     273
+    ## 179     273
+    ## 180     273
+    ## 181     273
+    ## 182     273
+    ## 183     273
+    ## 184     273
+    ## 185     273
+    ## 186     273
+    ## 187     273
+    ## 188     273
+    ## 189     273
+    ## 190     273
+    ## 191     273
+    ## 192     273
+    ## 193     262
+    ## 194     262
+    ## 195     262
+    ## 196     262
+    ## 197     262
+    ## 198     262
+    ## 199     262
+    ## 200     262
+    ## 201     262
+    ## 202     262
+    ## 203     262
+    ## 204     262
+    ## 205     262
+    ## 206     262
+    ## 207     262
+    ## 208     262
+    ## 209     262
+    ## 210     262
+    ## 211     262
+    ## 212     262
+    ## 213     262
+    ## 214     262
+    ## 215     262
+    ## 216     262
+    ## 217     301
+    ## 218     301
+    ## 219     301
+    ## 220     301
+    ## 221     301
+    ## 222     301
+    ## 223     301
+    ## 224     301
+    ## 225     301
+    ## 226     301
+    ## 227     301
+    ## 228     301
+    ## 229     301
+    ## 230     301
+    ## 231     301
+    ## 232     301
+    ## 233     301
+    ## 234     301
+    ## 235     301
+    ## 236     301
+    ## 237     301
+    ## 238     301
+    ## 239     301
+    ## 240     301
+    ## 241     251
+    ## 242     251
+    ## 243     251
+    ## 244     251
+    ## 245     251
+    ## 246     251
+    ## 247     251
+    ## 248     251
+    ## 249     251
+    ## 250     251
+    ## 251     251
+    ## 252     251
+    ## 253     251
+    ## 254     251
+    ## 255     251
+    ## 256     251
+    ## 257     251
+    ## 258     251
+    ## 259     251
+    ## 260     251
+    ## 261     251
+    ## 262     251
+    ## 263     251
+    ## 264     251
+    ## 265     250
+    ## 266     250
+    ## 267     250
+    ## 268     250
+    ## 269     250
+    ## 270     250
+    ## 271     250
+    ## 272     250
+    ## 273     250
+    ## 274     250
+    ## 275     250
+    ## 276     250
+    ## 277     250
+    ## 278     250
+    ## 279     250
+    ## 280     250
+    ## 281     250
+    ## 282     250
+    ## 283     250
+    ## 284     250
+    ## 285     250
+    ## 286     250
+    ## 287     250
+    ## 288     250
+    ## 289     259
+    ## 290     259
+    ## 291     259
+    ## 292     259
+    ## 293     259
+    ## 294     259
+    ## 295     259
+    ## 296     259
+    ## 297     259
+    ## 298     259
+    ## 299     259
+    ## 300     259
+    ## 301     259
+    ## 302     259
+    ## 303     259
+    ## 304     259
+    ## 305     259
+    ## 306     259
+    ## 307     259
+    ## 308     259
+    ## 309     259
+    ## 310     259
+    ## 311     259
+    ## 312     259
+    ## 313     249
+    ## 314     249
+    ## 315     249
+    ## 316     249
+    ## 317     249
+    ## 318     249
+    ## 319     249
+    ## 320     249
+    ## 321     249
+    ## 322     249
+    ## 323     249
+    ## 324     249
+    ## 325     249
+    ## 326     249
+    ## 327     249
+    ## 328     249
+    ## 329     249
+    ## 330     249
+    ## 331     249
+    ## 332     249
+    ## 333     249
+    ## 334     249
+    ## 335     249
+    ## 336     249
+    ## 337     295
+    ## 338     295
+    ## 339     295
+    ## 340     295
+    ## 341     295
+    ## 342     295
+    ## 343     295
+    ## 344     295
+    ## 345     295
+    ## 346     295
+    ## 347     295
+    ## 348     295
+    ## 349     295
+    ## 350     295
+    ## 351     295
+    ## 352     295
+    ## 353     295
+    ## 354     295
+    ## 355     295
+    ## 356     295
+    ## 357     295
+    ## 358     295
+    ## 359     295
+    ## 360     295
+    ## 361     294
+    ## 362     294
+    ## 363     294
+    ## 364     294
+    ## 365     294
+    ## 366     294
+    ## 367     294
+    ## 368     294
+    ## 369     294
+    ## 370     294
+    ## 371     294
+    ## 372     294
+    ## 373     294
+    ## 374     294
+    ## 375     294
+    ## 376     294
+    ## 377     294
+    ## 378     294
+    ## 379     294
+    ## 380     294
+    ## 381     294
+    ## 382     294
+    ## 383     294
+    ## 384     294
+    ## 385     280
+    ## 386     280
+    ## 387     280
+    ## 388     280
+    ## 389     280
+    ## 390     280
+    ## 391     280
+    ## 392     280
+    ## 393     280
+    ## 394     280
+    ## 395     280
+    ## 396     280
+    ## 397     280
+    ## 398     280
+    ## 399     280
+    ## 400     280
+    ## 401     280
+    ## 402     280
+    ## 403     280
+    ## 404     280
+    ## 405     280
+    ## 406     280
+    ## 407     280
+    ## 408     280
+    ## 409     246
+    ## 410     246
+    ## 411     246
+    ## 412     246
+    ## 413     246
+    ## 414     246
+    ## 415     246
+    ## 416     246
+    ## 417     246
+    ## 418     246
+    ## 419     246
+    ## 420     246
+    ## 421     246
+    ## 422     246
+    ## 423     246
+    ## 424     246
+    ## 425     246
+    ## 426     246
+    ## 427     246
+    ## 428     246
+    ## 429     246
+    ## 430     246
+    ## 431     246
+    ## 432     246
+    ## 433     272
+    ## 434     272
+    ## 435     272
+    ## 436     271
+    ## 437     271
+    ## 438     271
+    ## 439     272
+    ## 440     272
+    ## 441     272
+    ## 442     272
+    ## 443     272
+    ## 444     272
+    ## 445     271
+    ## 446     271
+    ## 447     271
+    ## 448     271
+    ## 449     271
+    ## 450     271
+    ## 451     271
+    ## 452     271
+    ## 453     271
+    ## 454     271
+    ## 455     271
+    ## 456     271
+    ## 457     257
+    ## 458     257
+    ## 459     257
+    ## 460     257
+    ## 461     257
+    ## 462     257
+    ## 463     257
+    ## 464     257
+    ## 465     257
+    ## 466     257
+    ## 467     257
+    ## 468     257
+    ## 469     257
+    ## 470     257
+    ## 471     257
+    ## 472     257
+    ## 473     257
+    ## 474     257
+    ## 475     257
+    ## 476     257
+    ## 477     257
+    ## 478     257
+    ## 479     257
+    ## 480     257
+    ## 481     262
+    ## 482     262
+    ## 483     262
+    ## 484     262
+    ## 485     262
+    ## 486     262
+    ## 487     262
+    ## 488     262
+    ## 489     262
+    ## 490     262
+    ## 491     262
+    ## 492     262
+    ## 493     262
+    ## 494     262
+    ## 495     262
+    ## 496     262
+    ## 497     262
+    ## 498     262
+    ## 499     262
+    ## 500     262
+    ## 501     262
+    ## 502     262
+    ## 503     262
+    ## 504     262
+    ## 505     264
+    ## 506     264
+    ## 507     264
+    ## 508     264
+    ## 509     264
+    ## 510     262
+    ## 511     261
+    ## 512     261
+    ## 513     261
+    ## 514     261
+    ## 515     261
+    ## 516     261
+    ## 517     258
+    ## 518     258
+    ## 519     258
+    ## 520     258
+    ## 521     257
+    ## 522     257
+    ## 523     257
+    ## 524     257
+    ## 525     257
+    ## 526     258
+    ## 527     259
+    ## 528     259
+    ## 529     269
+    ## 530     269
+    ## 531     269
+    ## 532     269
+    ## 533     268
+    ## 534     268
+    ## 535     268
+    ## 536     268
+    ## 537     268
+    ## 538     268
+    ## 539     269
+    ## 540     269
+    ## 541     268
+    ## 542     268
+    ## 543     268
+    ## 544     268
+    ## 545     268
+    ## 546     268
+    ## 547     268
+    ## 548     268
+    ## 549     268
+    ## 550     268
+    ## 551     270
+    ## 552     270
+    ## 553     255
+    ## 554     255
+    ## 555     255
+    ## 556     256
+    ## 557     257
+    ## 558     258
+    ## 559     258
+    ## 560     258
+    ## 561     258
+    ## 562     258
+    ## 563     258
+    ## 564     258
+    ## 565     257
+    ## 566     257
+    ## 567     257
+    ## 568     256
+    ## 569     256
+    ## 570     256
+    ## 571     256
+    ## 572     256
+    ## 573     256
+    ## 574     256
+    ## 575     256
+    ## 576     256
+    ## 577     199
+    ## 578     199
+    ## 579     199
+    ## 580     199
+    ## 581     199
+    ## 582     199
+    ## 583     199
+    ## 584     199
+    ## 585     199
+    ## 586     199
+    ## 587     199
+    ## 588     199
+    ## 589     196
+    ## 590     196
+    ## 591     195
+    ## 592     196
+    ## 593     197
+    ## 594     198
+    ## 595     198
+    ## 596     198
+    ## 597     198
+    ## 598     198
+    ## 599     198
+    ## 600     198
+    ## 601     207
+    ## 602     207
+    ## 603     207
+    ## 604     207
+    ## 605     207
+    ## 606     207
+    ## 607     207
+    ## 608     207
+    ## 609     207
+    ## 610     207
+    ## 611     207
+    ## 612     207
+    ## 613     203
+    ## 614     203
+    ## 615     204
+    ## 616     205
+    ## 617     205
+    ## 618     206
+    ## 619     206
+    ## 620     206
+    ## 621     206
+    ## 622     206
+    ## 623     206
+    ## 624     206
+    ## 625     210
+    ## 626     210
+    ## 627     210
+    ## 628     210
+    ## 629     210
+    ## 630     210
+    ## 631     210
+    ## 632     210
+    ## 633     210
+    ## 634     210
+    ## 635     211
+    ## 636     211
+    ## 637     210
+    ## 638     210
+    ## 639     210
+    ## 640     210
+    ## 641     210
+    ## 642     210
+    ## 643     210
+    ## 644     210
+    ## 645     210
+    ## 646     210
+    ## 647     210
+    ## 648     210
+    ## 649     211
+    ## 650     211
+    ## 651     211
+    ## 652     210
+    ## 653     210
+    ## 654     210
+    ## 655     210
+    ## 656     210
+    ## 657     210
+    ## 658     210
+    ## 659     211
+    ## 660     211
+    ## 661     211
+    ## 662     211
+    ## 663     211
+    ## 664     211
+    ## 665     211
+    ## 666     211
+    ## 667     211
+    ## 668     211
+    ## 669     211
+    ## 670     211
+    ## 671     211
+    ## 672     211
+    ## 673     203
+    ## 674     203
+    ## 675     203
+    ## 676     203
+    ## 677     203
+    ## 678     203
+    ## 679     203
+    ## 680     203
+    ## 681     203
+    ## 682     203
+    ## 683     203
+    ## 684     203
+    ## 685     203
+    ## 686     203
+    ## 687     204
+    ## 688     204
+    ## 689     204
+    ## 690     204
+    ## 691     204
+    ## 692     205
+    ## 693     205
+    ## 694     205
+    ## 695     205
+    ## 696     205
+    ## 697     201
+    ## 698     201
+    ## 699     202
+    ## 700     202
+    ## 701     202
+    ## 702     202
+    ## 703     202
+    ## 704     202
+    ## 705     202
+    ## 706     202
+    ## 707     202
+    ## 708     202
+    ## 709     201
+    ## 710     201
+    ## 711     201
+    ## 712     201
+    ## 713     201
+    ## 714     201
+    ## 715     201
+    ## 716     201
+    ## 717     201
+    ## 718     201
+    ## 719     202
+    ## 720     202
+    ## 721     233
+    ## 722     233
+    ## 723     233
+    ## 724     233
+    ## 725     232
+    ## 726     232
+    ## 727     232
+    ## 728     232
+    ## 729     233
+    ## 730     233
+    ## 731     234
+    ## 732     234
+    ## 733     231
+    ## 734     231
+    ## 735     233
+    ## 736     234
+    ## 737     235
+    ## 738     235
+    ## 739     236
+    ## 740     236
+    ## 741     236
+    ## 742     236
+    ## 743     236
+    ## 744     236
+    ## 745     254
+    ## 746     254
+    ## 747     253
+    ## 748     254
+    ## 749     255
+    ## 750     255
+    ## 751     254
+    ## 752     255
+    ## 753     255
+    ## 754     255
+    ## 755     257
+    ## 756     257
+    ## 757     255
+    ## 758     255
+    ## 759     253
+    ## 760     254
+    ## 761     254
+    ## 762     255
+    ## 763     255
+    ## 764     255
+    ## 765     255
+    ## 766     255
+    ## 767     255
+    ## 768     255
+    ## 769     193
+    ## 770     193
+    ## 771     192
+    ## 772     192
+    ## 773     192
+    ## 774     193
+    ## 775     192
+    ## 776     193
+    ## 777     193
+    ## 778     193
+    ## 779     193
+    ## 780     193
+    ## 781     192
+    ## 782     192
+    ## 783     191
+    ## 784     190
+    ## 785     190
+    ## 786     191
+    ## 787     191
+    ## 788     191
+    ## 789     191
+    ## 790     191
+    ## 791     194
+    ## 792     194
+    ## 793     200
+    ## 794     200
+    ## 795     200
+    ## 796     201
+    ## 797     201
+    ## 798     201
+    ## 799     201
+    ## 800     201
+    ## 801     201
+    ## 802     201
+    ## 803     201
+    ## 804     201
+    ## 805     200
+    ## 806     200
+    ## 807     199
+    ## 808     199
+    ## 809     199
+    ## 810     199
+    ## 811     199
+    ## 812     199
+    ## 813     199
+    ## 814     199
+    ## 815     201
+    ## 816     201
+    ## 817     188
+    ## 818     188
+    ## 819     188
+    ## 820     188
+    ## 821     188
+    ## 822     188
 
 ``` r
 skimr::skim(pols_month_df)
@@ -2250,8 +2275,8 @@ skimr::skim(pols_month_df)
 | Number of columns                                | 11            |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
 | Column type frequency:                           |               |
-| character                                        | 2             |
-| numeric                                          | 9             |
+| character                                        | 3             |
+| numeric                                          | 8             |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
 | Group variables                                  | None          |
 
@@ -2262,13 +2287,13 @@ Data summary
 | skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
 |:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
 | year          |         0 |             1 |   4 |   4 |     0 |       69 |          0 |
+| month         |         0 |             1 |   3 |   9 |     0 |       12 |          0 |
 | day           |         0 |             1 |   2 |   2 |     0 |        1 |          0 |
 
 **Variable type: numeric**
 
 | skim_variable | n_missing | complete_rate |   mean |    sd |  p0 | p25 | p50 | p75 | p100 | hist  |
 |:--------------|----------:|--------------:|-------:|------:|----:|----:|----:|----:|-----:|:------|
-| month         |         0 |             1 |   6.48 |  3.45 |   1 |   3 |   6 |   9 |   12 | ▇▅▅▅▇ |
 | prez_gop      |         0 |             1 |   0.53 |  0.51 |   0 |   0 |   1 |   1 |    2 | ▇▁▇▁▁ |
 | gov_gop       |         0 |             1 |  22.48 |  5.68 |  12 |  18 |  22 |  28 |   34 | ▆▆▇▅▅ |
 | sen_gop       |         0 |             1 |  46.10 |  6.38 |  32 |  42 |  46 |  51 |   56 | ▃▃▇▇▇ |
@@ -2295,8 +2320,8 @@ skimr::skim(pols_month_df)
 | Number of columns                                | 9             |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
 | Column type frequency:                           |               |
-| character                                        | 1             |
-| numeric                                          | 8             |
+| character                                        | 2             |
+| numeric                                          | 7             |
 | \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
 | Group variables                                  | None          |
 
@@ -2307,12 +2332,12 @@ Data summary
 | skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
 |:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
 | year          |         0 |             1 |   4 |   4 |     0 |       69 |          0 |
+| month         |         0 |             1 |   3 |   9 |     0 |       12 |          0 |
 
 **Variable type: numeric**
 
 | skim_variable | n_missing | complete_rate |   mean |    sd |  p0 | p25 | p50 | p75 | p100 | hist  |
 |:--------------|----------:|--------------:|-------:|------:|----:|----:|----:|----:|-----:|:------|
-| month         |         0 |             1 |   6.48 |  3.45 |   1 |   3 |   6 |   9 |   12 | ▇▅▅▅▇ |
 | gov_gop       |         0 |             1 |  22.48 |  5.68 |  12 |  18 |  22 |  28 |   34 | ▆▆▇▅▅ |
 | sen_gop       |         0 |             1 |  46.10 |  6.38 |  32 |  42 |  46 |  51 |   56 | ▃▃▇▇▇ |
 | rep_gop       |         0 |             1 | 194.92 | 29.24 | 141 | 176 | 195 | 222 |  253 | ▃▇▆▃▅ |
@@ -3208,6 +3233,916 @@ I replaced the month number with a month name.
 
 ### Tidying unemployment data
 
-**last part on: This process will involve switching from “wide” to
-“long” format; ensuring that key variables have the same name; and
-ensuring that key variables take the same values**
+**WHAT SHOULD WE CALL THE NEW VARIABLE?**
+
+``` r
+unemp_df = read_csv("./data/unemployment.csv") %>% 
+  janitor::clean_names() 
+```
+
+    ## Rows: 68 Columns: 13
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## dbl (13): Year, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+``` r
+skimr::skim(unemp_df)
+```
+
+|                                                  |          |
+|:-------------------------------------------------|:---------|
+| Name                                             | unemp_df |
+| Number of rows                                   | 68       |
+| Number of columns                                | 13       |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |          |
+| Column type frequency:                           |          |
+| numeric                                          | 13       |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |          |
+| Group variables                                  | None     |
+
+Data summary
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |    mean |    sd |     p0 |     p25 |     p50 |     p75 |   p100 | hist  |
+|:--------------|----------:|--------------:|--------:|------:|-------:|--------:|--------:|--------:|-------:|:------|
+| year          |         0 |          1.00 | 1981.50 | 19.77 | 1948.0 | 1964.75 | 1981.50 | 1998.25 | 2015.0 | ▇▇▇▇▇ |
+| jan           |         0 |          1.00 |    5.81 |  1.62 |    2.9 |    4.68 |    5.70 |    6.60 |   10.4 | ▅▇▃▂▁ |
+| feb           |         0 |          1.00 |    5.81 |  1.64 |    2.6 |    4.70 |    5.55 |    6.75 |   10.4 | ▃▇▅▂▁ |
+| mar           |         0 |          1.00 |    5.82 |  1.65 |    2.6 |    4.70 |    5.65 |    6.82 |   10.3 | ▃▇▇▃▁ |
+| apr           |         0 |          1.00 |    5.82 |  1.69 |    2.7 |    4.70 |    5.60 |    7.03 |   10.2 | ▃▇▆▃▂ |
+| may           |         0 |          1.00 |    5.82 |  1.70 |    2.5 |    4.60 |    5.60 |    7.10 |   10.1 | ▃▇▆▅▂ |
+| jun           |         0 |          1.00 |    5.84 |  1.69 |    2.5 |    4.60 |    5.60 |    7.05 |   10.1 | ▃▇▆▃▂ |
+| jul           |         1 |          0.99 |    5.84 |  1.67 |    2.6 |    4.70 |    5.60 |    6.95 |    9.8 | ▃▆▇▃▂ |
+| aug           |         1 |          0.99 |    5.83 |  1.66 |    2.7 |    4.65 |    5.70 |    6.90 |    9.8 | ▅▇▇▃▂ |
+| sep           |         1 |          0.99 |    5.83 |  1.65 |    2.9 |    4.65 |    5.60 |    6.85 |   10.1 | ▅▇▇▂▂ |
+| oct           |         1 |          0.99 |    5.84 |  1.67 |    3.0 |    4.55 |    5.70 |    6.90 |   10.4 | ▅▇▅▂▁ |
+| nov           |         1 |          0.99 |    5.84 |  1.66 |    2.8 |    4.65 |    5.80 |    6.80 |   10.8 | ▅▇▅▂▁ |
+| dec           |         1 |          0.99 |    5.84 |  1.64 |    2.7 |    4.80 |    5.60 |    6.65 |   10.8 | ▅▇▇▂▁ |
+
+``` r
+unemp_tidy_df = 
+  pivot_longer(
+    unemp_df, 
+    jan:dec,
+    names_to = "month", 
+    values_to = "persons")
+
+skimr::skim(unemp_tidy_df)
+```
+
+|                                                  |               |
+|:-------------------------------------------------|:--------------|
+| Name                                             | unemp_tidy_df |
+| Number of rows                                   | 816           |
+| Number of columns                                | 3             |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_   |               |
+| Column type frequency:                           |               |
+| character                                        | 1             |
+| numeric                                          | 2             |
+| \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ |               |
+| Group variables                                  | None          |
+
+Data summary
+
+**Variable type: character**
+
+| skim_variable | n_missing | complete_rate | min | max | empty | n_unique | whitespace |
+|:--------------|----------:|--------------:|----:|----:|------:|---------:|-----------:|
+| month         |         0 |             1 |   3 |   3 |     0 |       12 |          0 |
+
+**Variable type: numeric**
+
+| skim_variable | n_missing | complete_rate |    mean |    sd |     p0 |     p25 |    p50 |     p75 |   p100 | hist  |
+|:--------------|----------:|--------------:|--------:|------:|-------:|--------:|-------:|--------:|-------:|:------|
+| year          |         0 |          1.00 | 1981.50 | 19.64 | 1948.0 | 1964.75 | 1981.5 | 1998.25 | 2015.0 | ▇▇▇▇▇ |
+| persons       |         6 |          0.99 |    5.83 |  1.65 |    2.5 |    4.70 |    5.6 |    6.90 |   10.8 | ▃▇▅▂▁ |
+
+``` r
+unemp_tidy_df %>% 
+  transform(month = as.numeric(month))
+```
+
+    ## Warning in eval(substitute(list(...)), `_data`, parent.frame()): NAs introduced
+    ## by coercion
+
+    ##     year month persons
+    ## 1   1948    NA     3.4
+    ## 2   1948    NA     3.8
+    ## 3   1948    NA     4.0
+    ## 4   1948    NA     3.9
+    ## 5   1948    NA     3.5
+    ## 6   1948    NA     3.6
+    ## 7   1948    NA     3.6
+    ## 8   1948    NA     3.9
+    ## 9   1948    NA     3.8
+    ## 10  1948    NA     3.7
+    ## 11  1948    NA     3.8
+    ## 12  1948    NA     4.0
+    ## 13  1949    NA     4.3
+    ## 14  1949    NA     4.7
+    ## 15  1949    NA     5.0
+    ## 16  1949    NA     5.3
+    ## 17  1949    NA     6.1
+    ## 18  1949    NA     6.2
+    ## 19  1949    NA     6.7
+    ## 20  1949    NA     6.8
+    ## 21  1949    NA     6.6
+    ## 22  1949    NA     7.9
+    ## 23  1949    NA     6.4
+    ## 24  1949    NA     6.6
+    ## 25  1950    NA     6.5
+    ## 26  1950    NA     6.4
+    ## 27  1950    NA     6.3
+    ## 28  1950    NA     5.8
+    ## 29  1950    NA     5.5
+    ## 30  1950    NA     5.4
+    ## 31  1950    NA     5.0
+    ## 32  1950    NA     4.5
+    ## 33  1950    NA     4.4
+    ## 34  1950    NA     4.2
+    ## 35  1950    NA     4.2
+    ## 36  1950    NA     4.3
+    ## 37  1951    NA     3.7
+    ## 38  1951    NA     3.4
+    ## 39  1951    NA     3.4
+    ## 40  1951    NA     3.1
+    ## 41  1951    NA     3.0
+    ## 42  1951    NA     3.2
+    ## 43  1951    NA     3.1
+    ## 44  1951    NA     3.1
+    ## 45  1951    NA     3.3
+    ## 46  1951    NA     3.5
+    ## 47  1951    NA     3.5
+    ## 48  1951    NA     3.1
+    ## 49  1952    NA     3.2
+    ## 50  1952    NA     3.1
+    ## 51  1952    NA     2.9
+    ## 52  1952    NA     2.9
+    ## 53  1952    NA     3.0
+    ## 54  1952    NA     3.0
+    ## 55  1952    NA     3.2
+    ## 56  1952    NA     3.4
+    ## 57  1952    NA     3.1
+    ## 58  1952    NA     3.0
+    ## 59  1952    NA     2.8
+    ## 60  1952    NA     2.7
+    ## 61  1953    NA     2.9
+    ## 62  1953    NA     2.6
+    ## 63  1953    NA     2.6
+    ## 64  1953    NA     2.7
+    ## 65  1953    NA     2.5
+    ## 66  1953    NA     2.5
+    ## 67  1953    NA     2.6
+    ## 68  1953    NA     2.7
+    ## 69  1953    NA     2.9
+    ## 70  1953    NA     3.1
+    ## 71  1953    NA     3.5
+    ## 72  1953    NA     4.5
+    ## 73  1954    NA     4.9
+    ## 74  1954    NA     5.2
+    ## 75  1954    NA     5.7
+    ## 76  1954    NA     5.9
+    ## 77  1954    NA     5.9
+    ## 78  1954    NA     5.6
+    ## 79  1954    NA     5.8
+    ## 80  1954    NA     6.0
+    ## 81  1954    NA     6.1
+    ## 82  1954    NA     5.7
+    ## 83  1954    NA     5.3
+    ## 84  1954    NA     5.0
+    ## 85  1955    NA     4.9
+    ## 86  1955    NA     4.7
+    ## 87  1955    NA     4.6
+    ## 88  1955    NA     4.7
+    ## 89  1955    NA     4.3
+    ## 90  1955    NA     4.2
+    ## 91  1955    NA     4.0
+    ## 92  1955    NA     4.2
+    ## 93  1955    NA     4.1
+    ## 94  1955    NA     4.3
+    ## 95  1955    NA     4.2
+    ## 96  1955    NA     4.2
+    ## 97  1956    NA     4.0
+    ## 98  1956    NA     3.9
+    ## 99  1956    NA     4.2
+    ## 100 1956    NA     4.0
+    ## 101 1956    NA     4.3
+    ## 102 1956    NA     4.3
+    ## 103 1956    NA     4.4
+    ## 104 1956    NA     4.1
+    ## 105 1956    NA     3.9
+    ## 106 1956    NA     3.9
+    ## 107 1956    NA     4.3
+    ## 108 1956    NA     4.2
+    ## 109 1957    NA     4.2
+    ## 110 1957    NA     3.9
+    ## 111 1957    NA     3.7
+    ## 112 1957    NA     3.9
+    ## 113 1957    NA     4.1
+    ## 114 1957    NA     4.3
+    ## 115 1957    NA     4.2
+    ## 116 1957    NA     4.1
+    ## 117 1957    NA     4.4
+    ## 118 1957    NA     4.5
+    ## 119 1957    NA     5.1
+    ## 120 1957    NA     5.2
+    ## 121 1958    NA     5.8
+    ## 122 1958    NA     6.4
+    ## 123 1958    NA     6.7
+    ## 124 1958    NA     7.4
+    ## 125 1958    NA     7.4
+    ## 126 1958    NA     7.3
+    ## 127 1958    NA     7.5
+    ## 128 1958    NA     7.4
+    ## 129 1958    NA     7.1
+    ## 130 1958    NA     6.7
+    ## 131 1958    NA     6.2
+    ## 132 1958    NA     6.2
+    ## 133 1959    NA     6.0
+    ## 134 1959    NA     5.9
+    ## 135 1959    NA     5.6
+    ## 136 1959    NA     5.2
+    ## 137 1959    NA     5.1
+    ## 138 1959    NA     5.0
+    ## 139 1959    NA     5.1
+    ## 140 1959    NA     5.2
+    ## 141 1959    NA     5.5
+    ## 142 1959    NA     5.7
+    ## 143 1959    NA     5.8
+    ## 144 1959    NA     5.3
+    ## 145 1960    NA     5.2
+    ## 146 1960    NA     4.8
+    ## 147 1960    NA     5.4
+    ## 148 1960    NA     5.2
+    ## 149 1960    NA     5.1
+    ## 150 1960    NA     5.4
+    ## 151 1960    NA     5.5
+    ## 152 1960    NA     5.6
+    ## 153 1960    NA     5.5
+    ## 154 1960    NA     6.1
+    ## 155 1960    NA     6.1
+    ## 156 1960    NA     6.6
+    ## 157 1961    NA     6.6
+    ## 158 1961    NA     6.9
+    ## 159 1961    NA     6.9
+    ## 160 1961    NA     7.0
+    ## 161 1961    NA     7.1
+    ## 162 1961    NA     6.9
+    ## 163 1961    NA     7.0
+    ## 164 1961    NA     6.6
+    ## 165 1961    NA     6.7
+    ## 166 1961    NA     6.5
+    ## 167 1961    NA     6.1
+    ## 168 1961    NA     6.0
+    ## 169 1962    NA     5.8
+    ## 170 1962    NA     5.5
+    ## 171 1962    NA     5.6
+    ## 172 1962    NA     5.6
+    ## 173 1962    NA     5.5
+    ## 174 1962    NA     5.5
+    ## 175 1962    NA     5.4
+    ## 176 1962    NA     5.7
+    ## 177 1962    NA     5.6
+    ## 178 1962    NA     5.4
+    ## 179 1962    NA     5.7
+    ## 180 1962    NA     5.5
+    ## 181 1963    NA     5.7
+    ## 182 1963    NA     5.9
+    ## 183 1963    NA     5.7
+    ## 184 1963    NA     5.7
+    ## 185 1963    NA     5.9
+    ## 186 1963    NA     5.6
+    ## 187 1963    NA     5.6
+    ## 188 1963    NA     5.4
+    ## 189 1963    NA     5.5
+    ## 190 1963    NA     5.5
+    ## 191 1963    NA     5.7
+    ## 192 1963    NA     5.5
+    ## 193 1964    NA     5.6
+    ## 194 1964    NA     5.4
+    ## 195 1964    NA     5.4
+    ## 196 1964    NA     5.3
+    ## 197 1964    NA     5.1
+    ## 198 1964    NA     5.2
+    ## 199 1964    NA     4.9
+    ## 200 1964    NA     5.0
+    ## 201 1964    NA     5.1
+    ## 202 1964    NA     5.1
+    ## 203 1964    NA     4.8
+    ## 204 1964    NA     5.0
+    ## 205 1965    NA     4.9
+    ## 206 1965    NA     5.1
+    ## 207 1965    NA     4.7
+    ## 208 1965    NA     4.8
+    ## 209 1965    NA     4.6
+    ## 210 1965    NA     4.6
+    ## 211 1965    NA     4.4
+    ## 212 1965    NA     4.4
+    ## 213 1965    NA     4.3
+    ## 214 1965    NA     4.2
+    ## 215 1965    NA     4.1
+    ## 216 1965    NA     4.0
+    ## 217 1966    NA     4.0
+    ## 218 1966    NA     3.8
+    ## 219 1966    NA     3.8
+    ## 220 1966    NA     3.8
+    ## 221 1966    NA     3.9
+    ## 222 1966    NA     3.8
+    ## 223 1966    NA     3.8
+    ## 224 1966    NA     3.8
+    ## 225 1966    NA     3.7
+    ## 226 1966    NA     3.7
+    ## 227 1966    NA     3.6
+    ## 228 1966    NA     3.8
+    ## 229 1967    NA     3.9
+    ## 230 1967    NA     3.8
+    ## 231 1967    NA     3.8
+    ## 232 1967    NA     3.8
+    ## 233 1967    NA     3.8
+    ## 234 1967    NA     3.9
+    ## 235 1967    NA     3.8
+    ## 236 1967    NA     3.8
+    ## 237 1967    NA     3.8
+    ## 238 1967    NA     4.0
+    ## 239 1967    NA     3.9
+    ## 240 1967    NA     3.8
+    ## 241 1968    NA     3.7
+    ## 242 1968    NA     3.8
+    ## 243 1968    NA     3.7
+    ## 244 1968    NA     3.5
+    ## 245 1968    NA     3.5
+    ## 246 1968    NA     3.7
+    ## 247 1968    NA     3.7
+    ## 248 1968    NA     3.5
+    ## 249 1968    NA     3.4
+    ## 250 1968    NA     3.4
+    ## 251 1968    NA     3.4
+    ## 252 1968    NA     3.4
+    ## 253 1969    NA     3.4
+    ## 254 1969    NA     3.4
+    ## 255 1969    NA     3.4
+    ## 256 1969    NA     3.4
+    ## 257 1969    NA     3.4
+    ## 258 1969    NA     3.5
+    ## 259 1969    NA     3.5
+    ## 260 1969    NA     3.5
+    ## 261 1969    NA     3.7
+    ## 262 1969    NA     3.7
+    ## 263 1969    NA     3.5
+    ## 264 1969    NA     3.5
+    ## 265 1970    NA     3.9
+    ## 266 1970    NA     4.2
+    ## 267 1970    NA     4.4
+    ## 268 1970    NA     4.6
+    ## 269 1970    NA     4.8
+    ## 270 1970    NA     4.9
+    ## 271 1970    NA     5.0
+    ## 272 1970    NA     5.1
+    ## 273 1970    NA     5.4
+    ## 274 1970    NA     5.5
+    ## 275 1970    NA     5.9
+    ## 276 1970    NA     6.1
+    ## 277 1971    NA     5.9
+    ## 278 1971    NA     5.9
+    ## 279 1971    NA     6.0
+    ## 280 1971    NA     5.9
+    ## 281 1971    NA     5.9
+    ## 282 1971    NA     5.9
+    ## 283 1971    NA     6.0
+    ## 284 1971    NA     6.1
+    ## 285 1971    NA     6.0
+    ## 286 1971    NA     5.8
+    ## 287 1971    NA     6.0
+    ## 288 1971    NA     6.0
+    ## 289 1972    NA     5.8
+    ## 290 1972    NA     5.7
+    ## 291 1972    NA     5.8
+    ## 292 1972    NA     5.7
+    ## 293 1972    NA     5.7
+    ## 294 1972    NA     5.7
+    ## 295 1972    NA     5.6
+    ## 296 1972    NA     5.6
+    ## 297 1972    NA     5.5
+    ## 298 1972    NA     5.6
+    ## 299 1972    NA     5.3
+    ## 300 1972    NA     5.2
+    ## 301 1973    NA     4.9
+    ## 302 1973    NA     5.0
+    ## 303 1973    NA     4.9
+    ## 304 1973    NA     5.0
+    ## 305 1973    NA     4.9
+    ## 306 1973    NA     4.9
+    ## 307 1973    NA     4.8
+    ## 308 1973    NA     4.8
+    ## 309 1973    NA     4.8
+    ## 310 1973    NA     4.6
+    ## 311 1973    NA     4.8
+    ## 312 1973    NA     4.9
+    ## 313 1974    NA     5.1
+    ## 314 1974    NA     5.2
+    ## 315 1974    NA     5.1
+    ## 316 1974    NA     5.1
+    ## 317 1974    NA     5.1
+    ## 318 1974    NA     5.4
+    ## 319 1974    NA     5.5
+    ## 320 1974    NA     5.5
+    ## 321 1974    NA     5.9
+    ## 322 1974    NA     6.0
+    ## 323 1974    NA     6.6
+    ## 324 1974    NA     7.2
+    ## 325 1975    NA     8.1
+    ## 326 1975    NA     8.1
+    ## 327 1975    NA     8.6
+    ## 328 1975    NA     8.8
+    ## 329 1975    NA     9.0
+    ## 330 1975    NA     8.8
+    ## 331 1975    NA     8.6
+    ## 332 1975    NA     8.4
+    ## 333 1975    NA     8.4
+    ## 334 1975    NA     8.4
+    ## 335 1975    NA     8.3
+    ## 336 1975    NA     8.2
+    ## 337 1976    NA     7.9
+    ## 338 1976    NA     7.7
+    ## 339 1976    NA     7.6
+    ## 340 1976    NA     7.7
+    ## 341 1976    NA     7.4
+    ## 342 1976    NA     7.6
+    ## 343 1976    NA     7.8
+    ## 344 1976    NA     7.8
+    ## 345 1976    NA     7.6
+    ## 346 1976    NA     7.7
+    ## 347 1976    NA     7.8
+    ## 348 1976    NA     7.8
+    ## 349 1977    NA     7.5
+    ## 350 1977    NA     7.6
+    ## 351 1977    NA     7.4
+    ## 352 1977    NA     7.2
+    ## 353 1977    NA     7.0
+    ## 354 1977    NA     7.2
+    ## 355 1977    NA     6.9
+    ## 356 1977    NA     7.0
+    ## 357 1977    NA     6.8
+    ## 358 1977    NA     6.8
+    ## 359 1977    NA     6.8
+    ## 360 1977    NA     6.4
+    ## 361 1978    NA     6.4
+    ## 362 1978    NA     6.3
+    ## 363 1978    NA     6.3
+    ## 364 1978    NA     6.1
+    ## 365 1978    NA     6.0
+    ## 366 1978    NA     5.9
+    ## 367 1978    NA     6.2
+    ## 368 1978    NA     5.9
+    ## 369 1978    NA     6.0
+    ## 370 1978    NA     5.8
+    ## 371 1978    NA     5.9
+    ## 372 1978    NA     6.0
+    ## 373 1979    NA     5.9
+    ## 374 1979    NA     5.9
+    ## 375 1979    NA     5.8
+    ## 376 1979    NA     5.8
+    ## 377 1979    NA     5.6
+    ## 378 1979    NA     5.7
+    ## 379 1979    NA     5.7
+    ## 380 1979    NA     6.0
+    ## 381 1979    NA     5.9
+    ## 382 1979    NA     6.0
+    ## 383 1979    NA     5.9
+    ## 384 1979    NA     6.0
+    ## 385 1980    NA     6.3
+    ## 386 1980    NA     6.3
+    ## 387 1980    NA     6.3
+    ## 388 1980    NA     6.9
+    ## 389 1980    NA     7.5
+    ## 390 1980    NA     7.6
+    ## 391 1980    NA     7.8
+    ## 392 1980    NA     7.7
+    ## 393 1980    NA     7.5
+    ## 394 1980    NA     7.5
+    ## 395 1980    NA     7.5
+    ## 396 1980    NA     7.2
+    ## 397 1981    NA     7.5
+    ## 398 1981    NA     7.4
+    ## 399 1981    NA     7.4
+    ## 400 1981    NA     7.2
+    ## 401 1981    NA     7.5
+    ## 402 1981    NA     7.5
+    ## 403 1981    NA     7.2
+    ## 404 1981    NA     7.4
+    ## 405 1981    NA     7.6
+    ## 406 1981    NA     7.9
+    ## 407 1981    NA     8.3
+    ## 408 1981    NA     8.5
+    ## 409 1982    NA     8.6
+    ## 410 1982    NA     8.9
+    ## 411 1982    NA     9.0
+    ## 412 1982    NA     9.3
+    ## 413 1982    NA     9.4
+    ## 414 1982    NA     9.6
+    ## 415 1982    NA     9.8
+    ## 416 1982    NA     9.8
+    ## 417 1982    NA    10.1
+    ## 418 1982    NA    10.4
+    ## 419 1982    NA    10.8
+    ## 420 1982    NA    10.8
+    ## 421 1983    NA    10.4
+    ## 422 1983    NA    10.4
+    ## 423 1983    NA    10.3
+    ## 424 1983    NA    10.2
+    ## 425 1983    NA    10.1
+    ## 426 1983    NA    10.1
+    ## 427 1983    NA     9.4
+    ## 428 1983    NA     9.5
+    ## 429 1983    NA     9.2
+    ## 430 1983    NA     8.8
+    ## 431 1983    NA     8.5
+    ## 432 1983    NA     8.3
+    ## 433 1984    NA     8.0
+    ## 434 1984    NA     7.8
+    ## 435 1984    NA     7.8
+    ## 436 1984    NA     7.7
+    ## 437 1984    NA     7.4
+    ## 438 1984    NA     7.2
+    ## 439 1984    NA     7.5
+    ## 440 1984    NA     7.5
+    ## 441 1984    NA     7.3
+    ## 442 1984    NA     7.4
+    ## 443 1984    NA     7.2
+    ## 444 1984    NA     7.3
+    ## 445 1985    NA     7.3
+    ## 446 1985    NA     7.2
+    ## 447 1985    NA     7.2
+    ## 448 1985    NA     7.3
+    ## 449 1985    NA     7.2
+    ## 450 1985    NA     7.4
+    ## 451 1985    NA     7.4
+    ## 452 1985    NA     7.1
+    ## 453 1985    NA     7.1
+    ## 454 1985    NA     7.1
+    ## 455 1985    NA     7.0
+    ## 456 1985    NA     7.0
+    ## 457 1986    NA     6.7
+    ## 458 1986    NA     7.2
+    ## 459 1986    NA     7.2
+    ## 460 1986    NA     7.1
+    ## 461 1986    NA     7.2
+    ## 462 1986    NA     7.2
+    ## 463 1986    NA     7.0
+    ## 464 1986    NA     6.9
+    ## 465 1986    NA     7.0
+    ## 466 1986    NA     7.0
+    ## 467 1986    NA     6.9
+    ## 468 1986    NA     6.6
+    ## 469 1987    NA     6.6
+    ## 470 1987    NA     6.6
+    ## 471 1987    NA     6.6
+    ## 472 1987    NA     6.3
+    ## 473 1987    NA     6.3
+    ## 474 1987    NA     6.2
+    ## 475 1987    NA     6.1
+    ## 476 1987    NA     6.0
+    ## 477 1987    NA     5.9
+    ## 478 1987    NA     6.0
+    ## 479 1987    NA     5.8
+    ## 480 1987    NA     5.7
+    ## 481 1988    NA     5.7
+    ## 482 1988    NA     5.7
+    ## 483 1988    NA     5.7
+    ## 484 1988    NA     5.4
+    ## 485 1988    NA     5.6
+    ## 486 1988    NA     5.4
+    ## 487 1988    NA     5.4
+    ## 488 1988    NA     5.6
+    ## 489 1988    NA     5.4
+    ## 490 1988    NA     5.4
+    ## 491 1988    NA     5.3
+    ## 492 1988    NA     5.3
+    ## 493 1989    NA     5.4
+    ## 494 1989    NA     5.2
+    ## 495 1989    NA     5.0
+    ## 496 1989    NA     5.2
+    ## 497 1989    NA     5.2
+    ## 498 1989    NA     5.3
+    ## 499 1989    NA     5.2
+    ## 500 1989    NA     5.2
+    ## 501 1989    NA     5.3
+    ## 502 1989    NA     5.3
+    ## 503 1989    NA     5.4
+    ## 504 1989    NA     5.4
+    ## 505 1990    NA     5.4
+    ## 506 1990    NA     5.3
+    ## 507 1990    NA     5.2
+    ## 508 1990    NA     5.4
+    ## 509 1990    NA     5.4
+    ## 510 1990    NA     5.2
+    ## 511 1990    NA     5.5
+    ## 512 1990    NA     5.7
+    ## 513 1990    NA     5.9
+    ## 514 1990    NA     5.9
+    ## 515 1990    NA     6.2
+    ## 516 1990    NA     6.3
+    ## 517 1991    NA     6.4
+    ## 518 1991    NA     6.6
+    ## 519 1991    NA     6.8
+    ## 520 1991    NA     6.7
+    ## 521 1991    NA     6.9
+    ## 522 1991    NA     6.9
+    ## 523 1991    NA     6.8
+    ## 524 1991    NA     6.9
+    ## 525 1991    NA     6.9
+    ## 526 1991    NA     7.0
+    ## 527 1991    NA     7.0
+    ## 528 1991    NA     7.3
+    ## 529 1992    NA     7.3
+    ## 530 1992    NA     7.4
+    ## 531 1992    NA     7.4
+    ## 532 1992    NA     7.4
+    ## 533 1992    NA     7.6
+    ## 534 1992    NA     7.8
+    ## 535 1992    NA     7.7
+    ## 536 1992    NA     7.6
+    ## 537 1992    NA     7.6
+    ## 538 1992    NA     7.3
+    ## 539 1992    NA     7.4
+    ## 540 1992    NA     7.4
+    ## 541 1993    NA     7.3
+    ## 542 1993    NA     7.1
+    ## 543 1993    NA     7.0
+    ## 544 1993    NA     7.1
+    ## 545 1993    NA     7.1
+    ## 546 1993    NA     7.0
+    ## 547 1993    NA     6.9
+    ## 548 1993    NA     6.8
+    ## 549 1993    NA     6.7
+    ## 550 1993    NA     6.8
+    ## 551 1993    NA     6.6
+    ## 552 1993    NA     6.5
+    ## 553 1994    NA     6.6
+    ## 554 1994    NA     6.6
+    ## 555 1994    NA     6.5
+    ## 556 1994    NA     6.4
+    ## 557 1994    NA     6.1
+    ## 558 1994    NA     6.1
+    ## 559 1994    NA     6.1
+    ## 560 1994    NA     6.0
+    ## 561 1994    NA     5.9
+    ## 562 1994    NA     5.8
+    ## 563 1994    NA     5.6
+    ## 564 1994    NA     5.5
+    ## 565 1995    NA     5.6
+    ## 566 1995    NA     5.4
+    ## 567 1995    NA     5.4
+    ## 568 1995    NA     5.8
+    ## 569 1995    NA     5.6
+    ## 570 1995    NA     5.6
+    ## 571 1995    NA     5.7
+    ## 572 1995    NA     5.7
+    ## 573 1995    NA     5.6
+    ## 574 1995    NA     5.5
+    ## 575 1995    NA     5.6
+    ## 576 1995    NA     5.6
+    ## 577 1996    NA     5.6
+    ## 578 1996    NA     5.5
+    ## 579 1996    NA     5.5
+    ## 580 1996    NA     5.6
+    ## 581 1996    NA     5.6
+    ## 582 1996    NA     5.3
+    ## 583 1996    NA     5.5
+    ## 584 1996    NA     5.1
+    ## 585 1996    NA     5.2
+    ## 586 1996    NA     5.2
+    ## 587 1996    NA     5.4
+    ## 588 1996    NA     5.4
+    ## 589 1997    NA     5.3
+    ## 590 1997    NA     5.2
+    ## 591 1997    NA     5.2
+    ## 592 1997    NA     5.1
+    ## 593 1997    NA     4.9
+    ## 594 1997    NA     5.0
+    ## 595 1997    NA     4.9
+    ## 596 1997    NA     4.8
+    ## 597 1997    NA     4.9
+    ## 598 1997    NA     4.7
+    ## 599 1997    NA     4.6
+    ## 600 1997    NA     4.7
+    ## 601 1998    NA     4.6
+    ## 602 1998    NA     4.6
+    ## 603 1998    NA     4.7
+    ## 604 1998    NA     4.3
+    ## 605 1998    NA     4.4
+    ## 606 1998    NA     4.5
+    ## 607 1998    NA     4.5
+    ## 608 1998    NA     4.5
+    ## 609 1998    NA     4.6
+    ## 610 1998    NA     4.5
+    ## 611 1998    NA     4.4
+    ## 612 1998    NA     4.4
+    ## 613 1999    NA     4.3
+    ## 614 1999    NA     4.4
+    ## 615 1999    NA     4.2
+    ## 616 1999    NA     4.3
+    ## 617 1999    NA     4.2
+    ## 618 1999    NA     4.3
+    ## 619 1999    NA     4.3
+    ## 620 1999    NA     4.2
+    ## 621 1999    NA     4.2
+    ## 622 1999    NA     4.1
+    ## 623 1999    NA     4.1
+    ## 624 1999    NA     4.0
+    ## 625 2000    NA     4.0
+    ## 626 2000    NA     4.1
+    ## 627 2000    NA     4.0
+    ## 628 2000    NA     3.8
+    ## 629 2000    NA     4.0
+    ## 630 2000    NA     4.0
+    ## 631 2000    NA     4.0
+    ## 632 2000    NA     4.1
+    ## 633 2000    NA     3.9
+    ## 634 2000    NA     3.9
+    ## 635 2000    NA     3.9
+    ## 636 2000    NA     3.9
+    ## 637 2001    NA     4.2
+    ## 638 2001    NA     4.2
+    ## 639 2001    NA     4.3
+    ## 640 2001    NA     4.4
+    ## 641 2001    NA     4.3
+    ## 642 2001    NA     4.5
+    ## 643 2001    NA     4.6
+    ## 644 2001    NA     4.9
+    ## 645 2001    NA     5.0
+    ## 646 2001    NA     5.3
+    ## 647 2001    NA     5.5
+    ## 648 2001    NA     5.7
+    ## 649 2002    NA     5.7
+    ## 650 2002    NA     5.7
+    ## 651 2002    NA     5.7
+    ## 652 2002    NA     5.9
+    ## 653 2002    NA     5.8
+    ## 654 2002    NA     5.8
+    ## 655 2002    NA     5.8
+    ## 656 2002    NA     5.7
+    ## 657 2002    NA     5.7
+    ## 658 2002    NA     5.7
+    ## 659 2002    NA     5.9
+    ## 660 2002    NA     6.0
+    ## 661 2003    NA     5.8
+    ## 662 2003    NA     5.9
+    ## 663 2003    NA     5.9
+    ## 664 2003    NA     6.0
+    ## 665 2003    NA     6.1
+    ## 666 2003    NA     6.3
+    ## 667 2003    NA     6.2
+    ## 668 2003    NA     6.1
+    ## 669 2003    NA     6.1
+    ## 670 2003    NA     6.0
+    ## 671 2003    NA     5.8
+    ## 672 2003    NA     5.7
+    ## 673 2004    NA     5.7
+    ## 674 2004    NA     5.6
+    ## 675 2004    NA     5.8
+    ## 676 2004    NA     5.6
+    ## 677 2004    NA     5.6
+    ## 678 2004    NA     5.6
+    ## 679 2004    NA     5.5
+    ## 680 2004    NA     5.4
+    ## 681 2004    NA     5.4
+    ## 682 2004    NA     5.5
+    ## 683 2004    NA     5.4
+    ## 684 2004    NA     5.4
+    ## 685 2005    NA     5.3
+    ## 686 2005    NA     5.4
+    ## 687 2005    NA     5.2
+    ## 688 2005    NA     5.2
+    ## 689 2005    NA     5.1
+    ## 690 2005    NA     5.0
+    ## 691 2005    NA     5.0
+    ## 692 2005    NA     4.9
+    ## 693 2005    NA     5.0
+    ## 694 2005    NA     5.0
+    ## 695 2005    NA     5.0
+    ## 696 2005    NA     4.9
+    ## 697 2006    NA     4.7
+    ## 698 2006    NA     4.8
+    ## 699 2006    NA     4.7
+    ## 700 2006    NA     4.7
+    ## 701 2006    NA     4.6
+    ## 702 2006    NA     4.6
+    ## 703 2006    NA     4.7
+    ## 704 2006    NA     4.7
+    ## 705 2006    NA     4.5
+    ## 706 2006    NA     4.4
+    ## 707 2006    NA     4.5
+    ## 708 2006    NA     4.4
+    ## 709 2007    NA     4.6
+    ## 710 2007    NA     4.5
+    ## 711 2007    NA     4.4
+    ## 712 2007    NA     4.5
+    ## 713 2007    NA     4.4
+    ## 714 2007    NA     4.6
+    ## 715 2007    NA     4.7
+    ## 716 2007    NA     4.6
+    ## 717 2007    NA     4.7
+    ## 718 2007    NA     4.7
+    ## 719 2007    NA     4.7
+    ## 720 2007    NA     5.0
+    ## 721 2008    NA     5.0
+    ## 722 2008    NA     4.9
+    ## 723 2008    NA     5.1
+    ## 724 2008    NA     5.0
+    ## 725 2008    NA     5.4
+    ## 726 2008    NA     5.6
+    ## 727 2008    NA     5.8
+    ## 728 2008    NA     6.1
+    ## 729 2008    NA     6.1
+    ## 730 2008    NA     6.5
+    ## 731 2008    NA     6.8
+    ## 732 2008    NA     7.3
+    ## 733 2009    NA     7.8
+    ## 734 2009    NA     8.3
+    ## 735 2009    NA     8.7
+    ## 736 2009    NA     9.0
+    ## 737 2009    NA     9.4
+    ## 738 2009    NA     9.5
+    ## 739 2009    NA     9.5
+    ## 740 2009    NA     9.6
+    ## 741 2009    NA     9.8
+    ## 742 2009    NA    10.0
+    ## 743 2009    NA     9.9
+    ## 744 2009    NA     9.9
+    ## 745 2010    NA     9.8
+    ## 746 2010    NA     9.8
+    ## 747 2010    NA     9.9
+    ## 748 2010    NA     9.9
+    ## 749 2010    NA     9.6
+    ## 750 2010    NA     9.4
+    ## 751 2010    NA     9.4
+    ## 752 2010    NA     9.5
+    ## 753 2010    NA     9.5
+    ## 754 2010    NA     9.4
+    ## 755 2010    NA     9.8
+    ## 756 2010    NA     9.3
+    ## 757 2011    NA     9.2
+    ## 758 2011    NA     9.0
+    ## 759 2011    NA     9.0
+    ## 760 2011    NA     9.1
+    ## 761 2011    NA     9.0
+    ## 762 2011    NA     9.1
+    ## 763 2011    NA     9.0
+    ## 764 2011    NA     9.0
+    ## 765 2011    NA     9.0
+    ## 766 2011    NA     8.8
+    ## 767 2011    NA     8.6
+    ## 768 2011    NA     8.5
+    ## 769 2012    NA     8.3
+    ## 770 2012    NA     8.3
+    ## 771 2012    NA     8.2
+    ## 772 2012    NA     8.2
+    ## 773 2012    NA     8.2
+    ## 774 2012    NA     8.2
+    ## 775 2012    NA     8.2
+    ## 776 2012    NA     8.0
+    ## 777 2012    NA     7.8
+    ## 778 2012    NA     7.8
+    ## 779 2012    NA     7.7
+    ## 780 2012    NA     7.9
+    ## 781 2013    NA     8.0
+    ## 782 2013    NA     7.7
+    ## 783 2013    NA     7.5
+    ## 784 2013    NA     7.6
+    ## 785 2013    NA     7.5
+    ## 786 2013    NA     7.5
+    ## 787 2013    NA     7.3
+    ## 788 2013    NA     7.2
+    ## 789 2013    NA     7.2
+    ## 790 2013    NA     7.2
+    ## 791 2013    NA     7.0
+    ## 792 2013    NA     6.7
+    ## 793 2014    NA     6.6
+    ## 794 2014    NA     6.7
+    ## 795 2014    NA     6.6
+    ## 796 2014    NA     6.2
+    ## 797 2014    NA     6.3
+    ## 798 2014    NA     6.1
+    ## 799 2014    NA     6.2
+    ## 800 2014    NA     6.1
+    ## 801 2014    NA     5.9
+    ## 802 2014    NA     5.7
+    ## 803 2014    NA     5.8
+    ## 804 2014    NA     5.6
+    ## 805 2015    NA     5.7
+    ## 806 2015    NA     5.5
+    ## 807 2015    NA     5.5
+    ## 808 2015    NA     5.4
+    ## 809 2015    NA     5.5
+    ## 810 2015    NA     5.3
+    ## 811 2015    NA      NA
+    ## 812 2015    NA      NA
+    ## 813 2015    NA      NA
+    ## 814 2015    NA      NA
+    ## 815 2015    NA      NA
+    ## 816 2015    NA      NA

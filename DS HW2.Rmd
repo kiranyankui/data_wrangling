@@ -13,7 +13,7 @@ library(readxl)
 library(haven)
 ```
 
-## Question 1 
+## Problem 1 
 
 We want to read and clean the NYC transit dataset from the csv file. 
 
@@ -36,7 +36,7 @@ Now, we want to retain the following variables:
 * ADA compliance 
 
 ```{r retain variables}
-select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada, ada_notes)
+select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada)
 
 NYC_transit
 ```
@@ -49,14 +49,14 @@ recode(NYC_transit$entry, "YES"=TRUE,"NO"=FALSE, .default = NA)
 
 NYC_transit
 ```
-It took a while but I figured it out. 
-
 
 ## Description about the NYC_transit dataset
 
 1. The dataset contains 32 columns (variables) and 1868 rows  (observations). 
 
-2. The variables are as follows: division, line, station_name, routes, entrance type, entry, exit only, vending, staffing, staff hours, ADA notes, north south street, east west street, corner, station location, entrance location, ada, free crossover, station lattitude and longitude, and entrance lattitude and longitude. 
+2. The variables from the dataset contains line, station_name, station_latitude, station_longitude, routes1 to 11, entry, vending, entrance_type, ada
+
+division, line, station_name, routes, entrance type, entry, exit only, vending, staffing, staff hours, ADA notes, north south street, east west street, corner, station location, entrance location, ada, free crossover, station lattitude and longitude, and entrance lattitude and longitude. 
 
 3. I read and clean object names using clean names () in janitor; retain line, station, name, station latitude / longitude, routes served, entry, vending, entrance type, and ADA compliance. Convert the entry variable from character (YES vs NO) to a logical variable
 
@@ -105,32 +105,21 @@ I am reformating data so that route number and route name are distinct variables
 * How many distinct stations serve the A train? Of the stations that serve the A train, how many are ADA compliant?
 
 
-NYC_transit_tidy_data = 
-  pivot_longer(
-    NYC_transit, 
-    route1:route11,
-    names_to = "route_name", 
-    values_to = "rout_number")
-    
-__Is the above code right?__
-
-
 ## Problem 2    
 
-We want to read and clean the Mr Trash Wheel dataset from the excel file. 
 
 ```{r }
 
-Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Mr. Trash Wheel") %>% 
-  janitor::clean_names() %>% 
-  select(-x15, -x16, -x17) %>% 
-  drop_na(dumpster) %>% 
-  transform(sports_balls = as.integer(sports_balls)) %>% 
-  dplyr::mutate(ID = row_number())
-  
-```
+# read and clean the Mr Trash Wheel dataset from the excel file
 
-__what does it mean by specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel?__
+Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+  sheet="Mr. Trash Wheel", 
+  range = "A2:N535",
+  skip = 1) %>% 
+  janitor::clean_names() %>% 
+  drop_na(dumpster) %>% 
+  transform(sports_balls = as.integer(sports_balls)) 
+```
 
 I ensured the use of reasonable variable names. 
 I have ommited rows that do not include dumpster-specific data. 
@@ -138,23 +127,45 @@ I have rounded the number of sports balls to the nearest integer and converted t
 I created an ID column (variable) to faciliate the merging of the two datasets. 
 
 ```{r }
+# read and clean the Professor Trash Wheel dataset from the excel file
 
-Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", "Professor Trash Wheel") %>% 
+Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+  sheet = "Professor Trash Wheel",
+  range = "A2:N117",
+  skip = 1) %>% 
   janitor::clean_names() %>% 
   drop_na(dumpster) %>% 
-  transform(sports_balls = as.integer(sports_balls)) %>% 
-  dplyr::mutate(ID = row_number())
-  
+  transform(sports_balls = as.integer(sports_balls)) %>%
+  add_column(name = "Professor Trash Wheel") %>%
+  mutate(dumpster = as.character(dumpster))
 ```
 
-I used a similar process to import, clean, and organize the data for Professor Trash Wheel. 
 
-__What kind of variables must I create and which kind of join do you want us to do? __
+```{r}
+# Joining the datasets for Mr Trash Wheel and Professor Trash Wheel
+Both_Trash_df = 
+  full_join(Mr_Trash_df, Pf_Trash_df)
+```
 
-* Inner: keeps data that appear in both x and y
-* Left: keeps data that appear in x
-* Right: keeps data that appear in y
-* Full: keeps data that appear in either x or y
+__Mr Trash Wheel dataset (Mr_Trash_df)__
+* there are `r ncol(Mr_Trash_df)` columns (variables) and `r nrow(Mr_Trash_df)` rows (observations)
+
+__Professor Trash Wheel (Pf_Trash_df)__
+* there are `r ncol(Pf_Trash_df)` columns (variables) and `r nrow(Pf_Trash_df)` rows (observations).
+
+__combined dataset (Both_Trash_df)__
+* There are `r ncol(Both_Trash_df)` columns (variables) and `r nrow(Both_Trash_df)` rows (observations). 
+* This dataset includes the following variables: `r colnames(Both_Trash_df)`. 
+
+This dataset contains:
+
+* the weight of trash collected in tons
+* number of trash items collected (plastic bottles, polystyrene, cigarette butts, grocery bags, glass bottles, chip bags, and sports balls)
+* timing of trash collection by Mr Trash wheel and professor trash wheel
+
+The total weight of trash collected by Professor Trash Wheel is `r sum(Pf_Trash_df$weight_tons)` tons. 
+
+The total number of sports balls collected by Mr. Trash Wheel in 2020 is `r Mr_Trash_df %>% filter (year=="2020") %>% pull(sports_balls) %>% sum()` balls. 
 
 
 ## Problem 3
@@ -165,22 +176,15 @@ __What kind of variables must I create and which kind of join do you want us to 
 pols_month_df = read_csv("./data/pols-month.csv") %>% 
   janitor::clean_names() %>% 
   separate(mon, into = c("year", "month", "day"), sep = '-') %>% 
-  transform(month = as.numeric(month))
-
-skimr::skim(pols_month_df)
-```
-
-i have loaded and cleaned the data in pols-month.csv, as well as separated the column "mon" into "year", "month" and day". I also converted the "month" variable into a numeric variable. 
-
-
-```{r}
-pols_month_df %>%
+  transform(month = as.numeric(month)) %>%
+  
+  pols_month_df %>%
   mutate(month = month.name[month])
 
 skimr::skim(pols_month_df)
 ```
 
-I replaced the month number with a month name.
+i have loaded and cleaned the data in pols-month.csv, as well as separated the column "mon" into "year", "month" and day". I also converted the "month" variable into a numeric variable. I replaced the month number with a month name.
 
 ```{r}
 pols_month_df = pols_month_df %>%
@@ -219,9 +223,29 @@ I replaced the month number with a month name.
 
 ### Tidying unemployment data
 
-__last part on: This process will involve switching from “wide” to “long” format; ensuring that key variables have the same name; and ensuring that key variables take the same values__
 
+```{r}
+unemp_df = read_csv("./data/unemployment.csv") %>% 
+  janitor::clean_names() 
+  
+skimr::skim(unemp_df)
+```
 
+```{r}
+unemp_tidy_df = 
+  pivot_longer(
+    unemp_df, 
+    jan:dec,
+    names_to = "month", 
+    values_to = "persons")
+
+skimr::skim(unemp_tidy_df)
+```
+
+```{r}
+unemp_tidy_df %>% 
+  transform(month = as.numeric(month))
+```
 
 
 
