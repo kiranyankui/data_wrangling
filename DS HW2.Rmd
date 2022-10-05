@@ -8,17 +8,17 @@ output: github_document
 ## Load Libraries 
 
 ```{r setup}
+
 library(tidyverse)
 library(readxl)
-library(haven)
 ```
 
 ## Problem 1 
 
 We want to read and clean the NYC transit dataset from the csv file. 
 
-```{r Read/Clean Transit data}
-NYC_transit = read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
+```{r Read/Clean Transit data, eval = FALSE}
+NYC_transit <- read_csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
   janitor::clean_names()
 
 skimr::skim(NYC_transit)
@@ -35,7 +35,7 @@ Now, we want to retain the following variables:
 * entrance type
 * ADA compliance 
 
-```{r retain variables}
+```{r retain variables, eval = FALSE}
 select(NYC_transit, line, station_name, station_latitude, station_longitude, route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11, entry, vending, entrance_type, ada)
 
 NYC_transit
@@ -43,7 +43,7 @@ NYC_transit
 
 
 Converting the entry variable into a logical vector. 
-```{r converting to logical vector}
+```{r converting to logical vector, eval = FALSE}
 
 recode(NYC_transit$entry, "YES"=TRUE,"NO"=FALSE, .default = NA)
 
@@ -66,14 +66,14 @@ Answer the following questions using these data:
 
 * How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox); the distinct function may be useful here.
 
-```{r distinct stations}
+```{r distinct stations, eval = FALSE}
 nrow(distinct(NYC_transit, station_name))
 ```
 Ans: There are 356 distinct stations. 
 
 * How many stations are ADA compliant?
 
-```{r distinct stations who are ada-compliant }
+```{r distinct stations who are ada-compliant, eval = FALSE}
 NYC_transit %>% 
   select(station_name, ada) %>% 
   filter(ada == TRUE) %>%
@@ -85,7 +85,7 @@ Ans: There are 73 distinct stations who are ADA-compliant.
 
 * What proportion of station entrances / exits without vending allow entrance?
 
-```{r proportion of stations without vending allow entrance}
+```{r proportion of stations without vending allow entrance, eval = FALSE}
 NYC_transit %>% 
   select(vending, entry) %>% 
   filter(entry == "YES", vending == "NO")
@@ -112,39 +112,50 @@ I am reformating data so that route number and route name are distinct variables
 
 # read and clean the Mr Trash Wheel dataset from the excel file
 
-Mr_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+Mr_Trash_df <- read_excel("./data/Trash Wheel Collection Data.xlsx", 
   sheet="Mr. Trash Wheel", 
-  range = "A2:N535",
+  range = "A2:N549",
   skip = 1) %>% 
   janitor::clean_names() %>% 
   drop_na(dumpster) %>% 
-  transform(sports_balls = as.integer(sports_balls)) 
+   mutate(
+    sports_balls = as.integer(sports_balls),
+    year = as.numeric(year)) %>% 
+   add_column(name = "Mr. Trash Wheel")
+
+
+skimr::skim(Mr_Trash_df)
+  
 ```
 
 I ensured the use of reasonable variable names. 
 I have ommited rows that do not include dumpster-specific data. 
 I have rounded the number of sports balls to the nearest integer and converted the result to an integer variable. 
-I created an ID column (variable) to faciliate the merging of the two datasets. 
 
 ```{r }
 # read and clean the Professor Trash Wheel dataset from the excel file
 
-Pf_Trash_df = read_excel("./data/Trash-Wheel-Collection-Totals-7-2020-2.xlsx", 
+Pf_Trash_df <- read_excel("./data/Trash Wheel Collection Data.xlsx", 
   sheet = "Professor Trash Wheel",
-  range = "A2:N117",
+  range = "A2:M96",
   skip = 1) %>% 
   janitor::clean_names() %>% 
   drop_na(dumpster) %>% 
-  transform(sports_balls = as.integer(sports_balls)) %>%
-  add_column(name = "Professor Trash Wheel") %>%
-  mutate(dumpster = as.character(dumpster))
+  add_column(name = "Professor Trash Wheel") 
+
+skimr::skim(Pf_Trash_df)
+
 ```
 
 
 ```{r}
 # Joining the datasets for Mr Trash Wheel and Professor Trash Wheel
-Both_Trash_df = 
+Both_Trash_df <- 
   full_join(Mr_Trash_df, Pf_Trash_df)
+
+Both_Trash_df
+
+Both_Trash_df$name
 ```
 
 __Mr Trash Wheel dataset (Mr_Trash_df)__
@@ -157,11 +168,13 @@ __combined dataset (Both_Trash_df)__
 * There are `r ncol(Both_Trash_df)` columns (variables) and `r nrow(Both_Trash_df)` rows (observations). 
 * This dataset includes the following variables: `r colnames(Both_Trash_df)`. 
 
-This dataset contains:
+The combined dataset Both_Trash_df contains:
 
-* the weight of trash collected in tons
+* The year/month/day of trash collection yards
+* The weight of trash collected in tons and the volume in cubic 
 * number of trash items collected (plastic bottles, polystyrene, cigarette butts, grocery bags, glass bottles, chip bags, and sports balls)
-* timing of trash collection by Mr Trash wheel and professor trash wheel
+* homes powered 
+* and the name of the Trash Wheel (Mr. or Prof.)
 
 The total weight of trash collected by Professor Trash Wheel is `r sum(Pf_Trash_df$weight_tons)` tons. 
 
@@ -173,79 +186,94 @@ The total number of sports balls collected by Mr. Trash Wheel in 2020 is `r Mr_T
 ### Dataset for pols-month.csv
 
 ```{r}
-pols_month_df = read_csv("./data/pols-month.csv") %>% 
+pols_month_df <- read_csv("./data/pols-month.csv") %>% 
   janitor::clean_names() %>% 
   separate(mon, into = c("year", "month", "day"), sep = '-') %>% 
-  transform(month = as.numeric(month)) %>%
+  mutate(year = as.numeric(year),
+        month = month.abb[as.numeric(month)],
+        president = case_when(
+        prez_dem == 1 ~ "dem",
+        prez_gop > 0 ~ "gop",
+        TRUE ~ "")) %>% 
+  select(-prez_dem, -prez_gop, -day)
   
-  pols_month_df %>%
-  mutate(month = month.name[month])
-
 skimr::skim(pols_month_df)
 ```
 
 i have loaded and cleaned the data in pols-month.csv, as well as separated the column "mon" into "year", "month" and day". I also converted the "month" variable into a numeric variable. I replaced the month number with a month name.
 
-```{r}
-pols_month_df = pols_month_df %>%
-     mutate(president = prez_gop + prez_dem) %>% 
-    select(-prez_gop, -prez_dem, -day)
-
-skimr::skim(pols_month_df)
-```
-
 I also created a president variable taking values gop and dem, and remove prez_dem and prez_gop; and remove the day variable.
-
 
 
 ### Dataset for snp.csv
 
 ```{r}
-snp_df = read_csv("./data/snp.csv") %>% 
+snp_df <- read_csv("./data/snp.csv") %>% 
   janitor::clean_names() %>% 
   separate(date, into = c("month", "day", "year"), sep = '/') %>% 
-  transform(month = as.numeric(month))
+  mutate(year = as.numeric(year)) %>% 
+  mutate(month = month.abb[as.numeric(month)]) %>% 
+  select(-day) %>% 
+      mutate(year=if_else(year<23, year+2000, year+1900))
+
 
 skimr::skim(snp_df)
 ```
 
 i have loaded and cleaned the data in snp.csv, as well as separated the column "date" into "month", "day", "year". I also converted the "month" variable into a numeric variable. 
 
-
-```{r}
-snp_df %>%
-  mutate(month = month.name[month])
-
-skimr::skim(snp_df)
-```
-
 I replaced the month number with a month name.
+
+Also I changed the year from a double digit format to a four digit format. 
+
 
 ### Tidying unemployment data
 
-
 ```{r}
-unemp_df = read_csv("./data/unemployment.csv") %>% 
-  janitor::clean_names() 
-  
+
+unemp_df <- 
+  read_csv("./data/unemployment.csv") %>%
+  janitor::clean_names() %>%
+   pivot_longer( 
+     cols = jan:dec,
+     names_to = "month",
+     values_to = "percent_unemployment") 
+    
 skimr::skim(unemp_df)
+
+pols_snp_df = full_join (pols_month_df, snp_df)
+
+pols_snp_unemp_df = full_join (pols_snp_df, unemp_df)
+  
 ```
 
-```{r}
-unemp_tidy_df = 
-  pivot_longer(
-    unemp_df, 
-    jan:dec,
-    names_to = "month", 
-    values_to = "persons")
 
-skimr::skim(unemp_tidy_df)
-```
+__pols_month_df dataset__
 
-```{r}
-unemp_tidy_df %>% 
-  transform(month = as.numeric(month))
-```
+* There are  `r ncol(pols_month_df)` columns (variables) and `r nrow(pols_month_df)` rows (observations). 
+* This dataset includes the following variables: `r colnames(pols_month_df)`. This shows the year and month that democrat and republican presidents, governors, senators, house of representatives and senators were in office. 
+* Range of years is `r range(pols_month_df$year)`. 
+
+__snp_df dataset__
+
+* There are  `r ncol(snp_df)` columns (variables) and `r nrow(snp_df)` rows (observations). 
+* This dataset includes the following variables: `r colnames(snp_df)`. This shows percent of unemployment in a specific year and month.
+* Range of years is `r range(snp_df$year)`. 
+
+__unemp_df dataset__
+
+* There are  `r ncol(unemp_df)` columns (variables) and `r nrow(unemp_df)` rows (observations). 
+* This dataset includes the following variables: `r colnames(unemp_df)`. This shows the year and month that the stock markets close and the closing stock prices. 
+* Range of years is `r range(unemp_df$year)`. 
+
+__pols_snp_unemp_df__
+
+* There are  `r ncol(pols_snp_unemp_df)` columns (variables) and `r nrow(pols_snp_unemp_df)` rows (observations). 
+* This dataset includes the following variables: `r colnames(pols_snp_unemp_df)`. This is a combined dataset featuring variables from the pols_month_df, snp_df and unemp_df (shown above).
+* Range of years is `r range(pols_snp_unemp_df$year)`. 
+
+
+
 
 
 
